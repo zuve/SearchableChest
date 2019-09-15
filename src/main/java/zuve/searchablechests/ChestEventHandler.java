@@ -3,21 +3,20 @@ package zuve.searchablechests;
 import java.util.ArrayList;
 import java.util.Locale;
 
-import com.mojang.blaze3d.platform.GlStateManager;
-
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.AbstractGui;
 import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.screen.inventory.ContainerScreen;
-import net.minecraft.client.gui.screen.inventory.InventoryScreen;
-import net.minecraft.client.gui.widget.TextFieldWidget;
+import net.minecraft.client.gui.Gui;
+import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.GuiTextField;
+import net.minecraft.client.gui.inventory.GuiContainer;
+import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.InventoryEffectRenderer;
 import net.minecraft.client.util.ITooltipFlag.TooltipFlags;
 import net.minecraft.client.util.InputMappings;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.container.Slot;
+import net.minecraft.entity.player.InventoryPlayer;
+import net.minecraft.init.Items;
+import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraftforge.client.event.GuiContainerEvent;
@@ -32,7 +31,7 @@ public class ChestEventHandler {
 	private boolean skip;
 
 	private Minecraft mc;
-	private TextFieldWidget searchField;
+	private GuiTextField searchField;
 	private ArrayList<Slot> nonMatchingSlots;
 	private String searchString;
 	private ResourceLocation searchBar = new ResourceLocation("searchablechests", "textures/gui/search_bar.png");
@@ -54,19 +53,20 @@ public class ChestEventHandler {
 
 	@SubscribeEvent
 	public void onInitGui(GuiScreenEvent.InitGuiEvent.Post event) {
-		Screen gui = event.getGui();
-		if (gui instanceof ContainerScreen && !(gui instanceof InventoryScreen) && ((ContainerScreen<?>) gui)
-				.getContainer().getInventory().size() >= 36 + SearchableChestsConfig.minimumContainerSize) {
+		GuiScreen gui = event.getGui();
+		if (gui instanceof GuiContainer && !(gui instanceof InventoryEffectRenderer)
+				&& ((GuiContainer) gui).inventorySlots.getInventory().size() >= 36
+						+ SearchableChestsConfig.minimumContainerSize) {
 			mc.keyboardListener.enableRepeatEvents(true);
 			FontRenderer fontRenderer = mc.fontRenderer;
-			searchField = new TextFieldWidget(fontRenderer, 81, 6, 80, fontRenderer.FONT_HEIGHT, "");
+			searchField = new GuiTextField(0, fontRenderer, 81, 6, 80, fontRenderer.FONT_HEIGHT);
 			searchField.setText("");
 			searchField.setMaxStringLength(50);
 			searchField.setEnableBackgroundDrawing(false);
 			searchField.setTextColor(16777215);
 			searchField.setCanLoseFocus(true);
 			searchField.setVisible(true);
-			searchField.setFocused2(SearchableChestsConfig.autoFocus);
+			searchField.setFocused(SearchableChestsConfig.autoFocus);
 		} else {
 			searchField = null;
 		}
@@ -95,73 +95,49 @@ public class ChestEventHandler {
 					event.setCanceled(true);
 					switch (keyCode) {
 					case 262:
-						if (Screen.hasShiftDown()) {
+						if (GuiScreen.isShiftKeyDown()) {
 							if (searchField.getSelectedText().isEmpty()) {
 								searchField.setSelectionPos(searchField.getCursorPosition());
 							}
-							if (Screen.hasControlDown()) {
-								searchField.setCursorPosition(searchField.getNthWordFromCursor(1));
+							if (GuiScreen.isCtrlKeyDown()) {
+								searchField.func_212422_f(searchField.getNthWordFromCursor(1));
 							} else {
-								searchField.moveCursorBy(1);
+								searchField.func_212422_f(searchField.getCursorPosition() + 1);
 							}
-						} else if (Screen.hasControlDown()) {
+						} else if (GuiScreen.isCtrlKeyDown()) {
 							searchField.setCursorPosition(searchField.getNthWordFromCursor(1));
-							searchField.setSelectionPos(searchField.getCursorPosition());
 						} else if (!searchField.getSelectedText().isEmpty()) {
-							String text = searchField.getText();
-							String selectedText = searchField.getSelectedText();
-							int selectedTextLength = selectedText.length();
-							int cursorPosition = searchField.getCursorPosition();
-							int rightSelection;
-							if (cursorPosition + selectedTextLength < text.length()
-									&& text.substring(cursorPosition, cursorPosition + selectedTextLength)
-											.equals(selectedText)) {
-								rightSelection = cursorPosition + selectedTextLength;
-								searchField.setCursorPosition(rightSelection);
-							} else {
-								rightSelection = cursorPosition;
-								searchField.setSelectionPos(rightSelection);
-							}
+							int rightSelection = searchField.getCursorPosition() > searchField.getSelectionEnd()
+									? searchField.getCursorPosition()
+									: searchField.getSelectionEnd();
+							searchField.setCursorPosition(rightSelection);
 						} else {
 							searchField.moveCursorBy(1);
-							searchField.setSelectionPos(searchField.getCursorPosition());
 						}
 						break;
 					case 263:
-						if (Screen.hasShiftDown()) {
+						if (GuiScreen.isShiftKeyDown()) {
 							if (searchField.getSelectedText().isEmpty()) {
 								searchField.setSelectionPos(searchField.getCursorPosition());
 							}
-							if (Screen.hasControlDown()) {
-								searchField.setCursorPosition(searchField.getNthWordFromCursor(-1));
+							if (GuiScreen.isCtrlKeyDown()) {
+								searchField.func_212422_f(searchField.getNthWordFromCursor(-1));
 							} else {
-								searchField.moveCursorBy(-1);
+								searchField.func_212422_f(searchField.getCursorPosition() - 1);
 							}
-						} else if (Screen.hasControlDown()) {
+						} else if (GuiScreen.isCtrlKeyDown()) {
 							searchField.setCursorPosition(searchField.getNthWordFromCursor(-1));
-							searchField.setSelectionPos(searchField.getCursorPosition());
 						} else if (!searchField.getSelectedText().isEmpty()) {
-							String text = searchField.getText();
-							String selectedText = searchField.getSelectedText();
-							int selectedTextLength = selectedText.length();
-							int cursorPosition = searchField.getCursorPosition();
-							int leftSelection;
-							if (cursorPosition + selectedTextLength < text.length()
-									&& text.substring(cursorPosition, cursorPosition + selectedTextLength)
-											.equals(selectedText)) {
-								leftSelection = cursorPosition;
-								searchField.setSelectionPos(leftSelection);
-							} else {
-								leftSelection = cursorPosition - selectedTextLength;
-								searchField.setCursorPosition(leftSelection);
-							}
+							int leftSelection = searchField.getCursorPosition() < searchField.getSelectionEnd()
+									? searchField.getCursorPosition()
+									: searchField.getSelectionEnd();
+							searchField.setCursorPosition(leftSelection);
 						} else {
 							searchField.moveCursorBy(-1);
-							searchField.setSelectionPos(searchField.getCursorPosition());
 						}
 						break;
 					case 264:
-						if (Screen.hasShiftDown()) {
+						if (GuiScreen.isShiftKeyDown()) {
 							searchField.setSelectionPos(searchField.getText().length());
 						} else {
 							searchField.setCursorPositionEnd();
@@ -169,7 +145,7 @@ public class ChestEventHandler {
 						}
 						break;
 					case 265:
-						if (Screen.hasShiftDown()) {
+						if (GuiScreen.isShiftKeyDown()) {
 							searchField.setSelectionPos(0);
 						} else {
 							searchField.setCursorPositionZero();
@@ -189,7 +165,7 @@ public class ChestEventHandler {
 				}
 			} else {
 				if (mc.gameSettings.keyBindChat.matchesKey(keyCode, scanCode)) {
-					searchField.changeFocus(true);
+					searchField.setFocused(true);
 					event.setCanceled(true);
 					skip = true;
 				}
@@ -200,12 +176,13 @@ public class ChestEventHandler {
 	@SubscribeEvent
 	public void onMouseClicked(GuiScreenEvent.MouseClickedEvent.Pre event) {
 		if (searchField != null) {
-			double x = event.getMouseX() - ((ContainerScreen<?>) event.getGui()).getGuiLeft();
-			double y = event.getMouseY() - ((ContainerScreen<?>) event.getGui()).getGuiTop();
+			double x = event.getMouseX() - ((GuiContainer) event.getGui()).getGuiLeft();
+			double y = event.getMouseY() - ((GuiContainer) event.getGui()).getGuiTop();
 
+			int initialCursorPos = searchField.getCursorPosition();
 			searchField.mouseClicked(x, y, event.getButton());
-			if (!Screen.hasShiftDown()) {
-				searchField.setSelectionPos(searchField.getCursorPosition());
+			if (GuiScreen.isShiftKeyDown()) {
+				searchField.setSelectionPos(initialCursorPos);
 			}
 		}
 	}
@@ -216,13 +193,13 @@ public class ChestEventHandler {
 			GlStateManager.disableLighting();
 			GlStateManager.color4f(1.0F, 1.0F, 1.0F, 1.0F);
 			mc.getTextureManager().bindTexture(searchBar);
-			AbstractGui.blit(79, 4, 0.0F, 0.0F, 90, 12, 90, 12);
-			searchField.render(event.getMouseX(), event.getMouseY(), mc.getRenderPartialTicks());
+			Gui.drawModalRectWithCustomSizedTexture(79, 4, 0.0F, 0.0F, 90, 12, 90, 12);
+			searchField.drawTextField(event.getMouseX(), event.getMouseY(), mc.getRenderPartialTicks());
 			if (!searchString.equals(searchField.getText())) {
 				searchString = searchField.getText();
 				nonMatchingSlots.clear();
-				for (Slot s : event.getGuiContainer().getContainer().inventorySlots) {
-					if (!(s.inventory instanceof PlayerInventory)) {
+				for (Slot s : event.getGuiContainer().inventorySlots.inventorySlots) {
+					if (!(s.inventory instanceof InventoryPlayer)) {
 						ItemStack stack = s.getStack();
 						if (!stackMatches(searchField.getText(), stack)) {
 							nonMatchingSlots.add(s);
@@ -234,7 +211,7 @@ public class ChestEventHandler {
 				int x = s.xPos;
 				int y = s.yPos;
 				GlStateManager.disableDepthTest();
-				AbstractGui.fill(x, y, x + 16, y + 16, 0x80FF0000);
+				Gui.drawRect(x, y, x + 16, y + 16, 0x80FF0000);
 				GlStateManager.enableDepthTest();
 			}
 			GlStateManager.enableLighting();
