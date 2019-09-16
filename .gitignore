@@ -1,8 +1,5 @@
 # eclipse
 bin
-.settings
-.metadata
-
 # idea
 out
 *.ipr
