@@ -91,7 +91,7 @@ public class ChestEventHandler {
 			int keyCode = event.getKeyCode();
 			int scanCode = event.getScanCode();
 			if (searchField.isFocused()) {
-				if (keyCode == 69 || (keyCode >= 262 && keyCode <= 265)) {
+				if (keyCode == mc.gameSettings.keyBindInventory.getKey().getKeyCode() || (keyCode >= 262 && keyCode <= 265)) {
 					event.setCanceled(true);
 					switch (keyCode) {
 					case 262:
