@@ -36,8 +36,6 @@ public class ChestEventHandler {
 	private ArrayList<Slot> nonMatchingSlots;
 	private String searchString;
 	private ResourceLocation searchBar = new ResourceLocation("searchablechests", "textures/gui/search_bar.png");
-	private long lastClickTime;
-	private int clickCount;
 
 	public ChestEventHandler() {
 		mc = Minecraft.getInstance();
@@ -69,8 +67,6 @@ public class ChestEventHandler {
 			searchField.setCanLoseFocus(true);
 			searchField.setVisible(true);
 			searchField.setFocused2(SearchableChestsConfig.autoFocus);
-			lastClickTime = 0;
-			clickCount = 0;
 		} else {
 			searchField = null;
 		}
@@ -95,7 +91,7 @@ public class ChestEventHandler {
 			int keyCode = event.getKeyCode();
 			int scanCode = event.getScanCode();
 			if (searchField.isFocused()) {
-				if (keyCode == mc.gameSettings.keyBindInventory.getKey().getKeyCode() || (keyCode >= 262 && keyCode <= 265)) {
+				if (keyCode == 69 || (keyCode >= 262 && keyCode <= 265)) {
 					event.setCanceled(true);
 					switch (keyCode) {
 					case 262:
@@ -204,38 +200,12 @@ public class ChestEventHandler {
 	@SubscribeEvent
 	public void onMouseClicked(GuiScreenEvent.MouseClickedEvent.Pre event) {
 		if (searchField != null) {
-			long clickTime = System.currentTimeMillis();
-			if (clickTime - lastClickTime <= 475) {
-				clickCount++;
-				lastClickTime = System.currentTimeMillis();
-			} else {
-				clickCount = 1;
-				lastClickTime = System.currentTimeMillis();
-			}
 			double x = event.getMouseX() - ((ContainerScreen<?>) event.getGui()).getGuiLeft();
 			double y = event.getMouseY() - ((ContainerScreen<?>) event.getGui()).getGuiTop();
-			
-			int lastCursorPos = searchField.getCursorPosition();
+
 			searchField.mouseClicked(x, y, event.getButton());
-			int cursorPos = searchField.getCursorPosition();
-			
 			if (!Screen.hasShiftDown()) {
 				searchField.setSelectionPos(searchField.getCursorPosition());
-			}
-			
-			if (cursorPos == lastCursorPos || clickCount == 3) {
-				switch (clickCount) {
-				case 2:
-					searchField.setCursorPosition(searchField.getNthWordFromCursor(1) - ((searchField.getNthWordFromCursor(1) == searchField.getText().length()) ? 0 : 1));
-					searchField.setSelectionPos(searchField.getNthWordFromCursor(-1));
-					break;
-				case 3:
-					searchField.setCursorPositionEnd();
-					searchField.setSelectionPos(0);
-					break;
-				}
-			} else {
-				clickCount = 1;
 			}
 		}
 	}
