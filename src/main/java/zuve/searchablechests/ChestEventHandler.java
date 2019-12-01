@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Locale;
 
 import org.lwjgl.input.Keyboard;
+import org.lwjgl.input.Mouse;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
@@ -14,13 +15,11 @@ import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.InventoryEffectRenderer;
 import net.minecraft.client.util.ITooltipFlag.TooltipFlags;
-import net.minecraft.client.util.InputMappings;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
 import net.minecraftforge.client.event.GuiContainerEvent;
 import net.minecraftforge.client.event.GuiScreenEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
@@ -75,12 +74,12 @@ public class ChestEventHandler {
 	}
 
 	@SubscribeEvent
-	public void onCharTyped(GuiScreenEvent.KeyboardCharTypedEvent.Pre event) {
+	public void onCharTyped(GuiScreenEvent.KeyboardInputEvent.Pre event) {
 		if (searchField != null) {
 			if (skip) {
 				skip = false;
 			} else {
-				if (searchField.isFocused() && searchField.charTyped(event.getCodePoint(), event.getCodePoint())) {
+				if (searchField.isFocused() && searchField.textboxKeyTyped(Keyboard.getEventCharacter(), Keyboard.getEventKey())) {
 					event.setCanceled(true);
 				}
 			}
@@ -88,10 +87,11 @@ public class ChestEventHandler {
 	}
 
 	@SubscribeEvent
-	public void onKeyPressed(GuiScreenEvent.KeyboardKeyPressedEvent.Pre event) {
+	public void onKeyPressed(GuiScreenEvent.KeyboardInputEvent event) {
+		System.out.println("fire");
 		if (searchField != null) {
-			int keyCode = event.getKeyCode();
-			int scanCode = event.getScanCode();
+			int keyCode = Keyboard.getEventKey();
+			char keyChar = Keyboard.getEventCharacter();
 			if (searchField.isFocused()) {
 				if (keyCode == 69 || (keyCode >= 262 && keyCode <= 265)) {
 					event.setCanceled(true);
@@ -102,9 +102,9 @@ public class ChestEventHandler {
 								searchField.setSelectionPos(searchField.getCursorPosition());
 							}
 							if (GuiScreen.isCtrlKeyDown()) {
-								searchField.func_212422_f(searchField.getNthWordFromCursor(1));
+								searchField.setCursorPosition(searchField.getNthWordFromCursor(1));
 							} else {
-								searchField.func_212422_f(searchField.getCursorPosition() + 1);
+								searchField.setCursorPosition(searchField.getCursorPosition() + 1);
 							}
 						} else if (GuiScreen.isCtrlKeyDown()) {
 							searchField.setCursorPosition(searchField.getNthWordFromCursor(1));
@@ -123,9 +123,9 @@ public class ChestEventHandler {
 								searchField.setSelectionPos(searchField.getCursorPosition());
 							}
 							if (GuiScreen.isCtrlKeyDown()) {
-								searchField.func_212422_f(searchField.getNthWordFromCursor(-1));
+								searchField.setCursorPosition(searchField.getNthWordFromCursor(-1));
 							} else {
-								searchField.func_212422_f(searchField.getCursorPosition() - 1);
+								searchField.setCursorPosition(searchField.getCursorPosition() - 1);
 							}
 						} else if (GuiScreen.isCtrlKeyDown()) {
 							searchField.setCursorPosition(searchField.getNthWordFromCursor(-1));
@@ -157,16 +157,15 @@ public class ChestEventHandler {
 					}
 					return;
 				}
-				if (searchField.keyPressed(keyCode, scanCode, event.getModifiers())) {
+				if (searchField.textboxKeyTyped(keyChar, keyCode)) {
 					for (int i = 0; i < 9; ++i) {
-						if (mc.gameSettings.keyBindsHotbar[i]
-								.isActiveAndMatches(InputMappings.getInputByCode(keyCode, scanCode))) {
+						if (mc.gameSettings.keyBindsHotbar[i].isActiveAndMatches(keyCode)) {
 							event.setCanceled(true);
 						}
 					}
 				}
 			} else {
-				if (mc.gameSettings.keyBindChat.matchesKey(keyCode, scanCode)) {
+				if (mc.gameSettings.keyBindChat.isActiveAndMatches(keyCode)) {
 					searchField.setFocused(true);
 					event.setCanceled(true);
 					skip = true;
@@ -176,13 +175,13 @@ public class ChestEventHandler {
 	}
 
 	@SubscribeEvent
-	public void onMouseClicked(GuiScreenEvent.MouseClickedEvent.Pre event) {
+	public void onMouseClicked(GuiScreenEvent.MouseInputEvent.Pre event) {
 		if (searchField != null) {
-			double x = event.getMouseX() - ((GuiContainer) event.getGui()).getGuiLeft();
-			double y = event.getMouseY() - ((GuiContainer) event.getGui()).getGuiTop();
+			int x = Mouse.getEventX() - ((GuiContainer) event.getGui()).getGuiLeft();
+			int y = Mouse.getEventY() - ((GuiContainer) event.getGui()).getGuiTop();
 
 			int initialCursorPos = searchField.getCursorPosition();
-			searchField.mouseClicked(x, y, event.getButton());
+			searchField.mouseClicked(x, y, Mouse.getEventButton());
 			if (GuiScreen.isShiftKeyDown()) {
 				searchField.setSelectionPos(initialCursorPos);
 			}
@@ -193,10 +192,10 @@ public class ChestEventHandler {
 	public void onForeground(GuiContainerEvent.DrawForeground event) {
 		if (searchField != null) {
 			GlStateManager.disableLighting();
-			GlStateManager.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+			GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
 			mc.getTextureManager().bindTexture(searchBar);
 			Gui.drawModalRectWithCustomSizedTexture(79, 4, 0.0F, 0.0F, 90, 12, 90, 12);
-			searchField.drawTextField(event.getMouseX(), event.getMouseY(), mc.getRenderPartialTicks());
+			searchField.drawTextBox();
 			if (!searchString.equals(searchField.getText())) {
 				searchString = searchField.getText();
 				nonMatchingSlots.clear();
@@ -212,9 +211,9 @@ public class ChestEventHandler {
 			for (Slot s : nonMatchingSlots) {
 				int x = s.xPos;
 				int y = s.yPos;
-				GlStateManager.disableDepthTest();
+				GlStateManager.disableDepth();
 				Gui.drawRect(x, y, x + 16, y + 16, 0x80FF0000);
-				GlStateManager.enableDepthTest();
+				GlStateManager.enableDepth();
 			}
 			GlStateManager.enableLighting();
 		}
@@ -225,9 +224,9 @@ public class ChestEventHandler {
 			return true;
 		}
 		ArrayList<String> keys = new ArrayList<String>();
-		for (ITextComponent line : stack.getTooltip(mc.player,
+		for (String line : stack.getTooltip(mc.player,
 				mc.gameSettings.advancedItemTooltips ? TooltipFlags.ADVANCED : TooltipFlags.NORMAL)) {
-			keys.add(line.getString());
+			keys.add(line);
 		}
 		for (String key : keys) {
 			if (key.toLowerCase(Locale.ROOT).contains(text.toLowerCase(Locale.ROOT))) {
