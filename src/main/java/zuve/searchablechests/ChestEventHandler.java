@@ -49,14 +49,17 @@ public class ChestEventHandler {
 		if (config.getSpec() == SearchableChests.CONFIG_SPEC) {
 			SearchableChestsConfig.autoFocus = SearchableChests.CONFIG.autoFocus.get();
 			SearchableChestsConfig.minimumContainerSize = SearchableChests.CONFIG.minimumContainerSize.get();
+			SearchableChestsConfig.blacklist = SearchableChests.CONFIG.blacklist.get();
 		}
 	}
 
 	@SubscribeEvent
 	public void onInitGui(GuiScreenEvent.InitGuiEvent.Post event) {
 		Screen gui = event.getGui();
-		if (gui instanceof ContainerScreen && !(gui instanceof InventoryScreen) && ((ContainerScreen<?>) gui)
-				.getContainer().getInventory().size() >= 36 + SearchableChestsConfig.minimumContainerSize) {
+		if (gui instanceof ContainerScreen && !(gui instanceof InventoryScreen)
+				&& ((ContainerScreen<?>) gui).getContainer().getInventory().size() >= 36
+						+ SearchableChestsConfig.minimumContainerSize
+				&& !SearchableChestsConfig.blacklist.contains(gui.getTitle().getString())) {
 			mc.keyboardListener.enableRepeatEvents(true);
 			FontRenderer fontRenderer = mc.fontRenderer;
 			searchField = new TextFieldWidget(fontRenderer, 81, 6, 80, fontRenderer.FONT_HEIGHT, "");
