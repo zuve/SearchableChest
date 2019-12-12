@@ -1,14 +1,11 @@
 # eclipse
 bin
-<<<<<<< HEAD
 /java
-=======
 *.launch
 .settings
 .metadata
 .classpath
 .project
->>>>>>> 52d0ce70e116e32536046d8a7d95983361ac7588
 
 # idea
 out
