@@ -1,11 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
+	<classpathentry output="bin/main" path="src/main/java" kind="src">
+		<attributes>
+			<attribute name="gradle_scope" value="main"/>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="C:\Users\zaden\Documents\Modding\Searchable Chests\build\natives"/>
+			<attribute name="gradle_used_by_scope" value="main,test"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry output="bin/main" path="src/main/resources" kind="src">
+		<attributes>
+			<attribute name="gradle_scope" value="main"/>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="C:\Users\zaden\Documents\Modding\Searchable Chests\build\natives"/>
+			<attribute name="gradle_used_by_scope" value="main,test"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry output="bin/test" path="src/test/java" kind="src">
+		<attributes>
+			<attribute name="gradle_scope" value="test"/>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="C:\Users\zaden\Documents\Modding\Searchable Chests\build\natives"/>
+			<attribute name="gradle_used_by_scope" value="test"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry output="bin/test" path="src/test/resources" kind="src">
+		<attributes>
+			<attribute name="gradle_scope" value="test"/>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="C:\Users\zaden\Documents\Modding\Searchable Chests\build\natives"/>
+			<attribute name="gradle_used_by_scope" value="test"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry path="org.eclipse.buildship.core.gradleclasspathcontainer" kind="con"/>
+	<classpathentry path="bin/default" kind="output"/>
+	<classpathentry path="bin" kind="output"/>
 	<classpathentry path="src/main/java" kind="src"/>
 	<classpathentry path="src/main/resources" kind="src"/>
 	<classpathentry path="src/test/java" kind="src"/>
 	<classpathentry path="src/test/resources" kind="src"/>
-	<classpathentry path="org.eclipse.buildship.core.gradleclasspathcontainer" kind="con"/>
-	<classpathentry path="bin" kind="output"/>
 	<classpathentry path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8/" kind="con"/>
 	<classpathentry path="C:/Users/zaden/.gradle/caches/minecraft/net/minecraftforge/forge/1.12.2-14.23.5.2846/snapshot/20171003/forgeSrc-1.12.2-14.23.5.2846.jar" kind="lib" sourcepath="C:/Users/zaden/.gradle/caches/minecraft/net/minecraftforge/forge/1.12.2-14.23.5.2846/snapshot/20171003/forgeSrc-1.12.2-14.23.5.2846-sources.jar"/>
 	<classpathentry path="C:/Users/zaden/.gradle/caches/modules-2/files-2.1/com.google.code.findbugs/jsr305/3.0.1/f7be08ec23c21485b9b5a1cf1654c2ec8c58168d/jsr305-3.0.1.jar" kind="lib" sourcepath="C:/Users/zaden/.gradle/caches/modules-2/files-2.1/com.google.code.findbugs/jsr305/3.0.1/a2926c057ca3b662b9db194c869bdbe7d3bb8aef/jsr305-3.0.1-sources.jar"/>

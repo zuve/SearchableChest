@@ -1,14 +1,27 @@
 package zuve.searchablechests;
 
-import net.minecraftforge.common.ForgeConfigSpec;
+import org.apache.logging.log4j.Level;
+
+import net.minecraftforge.common.config.Configuration;
 
 final class Config {
-	final ForgeConfigSpec.ConfigValue<Boolean> autoFocus;
-	final ForgeConfigSpec.ConfigValue<Integer> minimumContainerSize;
+	public static final String GENERAL = "general";
 
-	Config(final ForgeConfigSpec.Builder builder) {
-		autoFocus = builder.comment("Whether the search bar will be focused by default when opening containers")
-				.translation("searchablechests.config.autoFocus").define("autoFocus", false);
-		minimumContainerSize = builder.comment("Minimum size a container must be for a search bar to be added").translation("searchablechests.config.minimumContainerSize").defineInRange("minimumContainerSize", 27, 0, Integer.MAX_VALUE);
+	public static boolean autoFocus = false;
+	public static int minimumContainerSize = 27;
+
+	public static void readConfig() {
+		Configuration cfg = SearchableChests.config;
+		try {
+            cfg.load();
+            autoFocus = cfg.getBoolean("autoFocus", GENERAL, autoFocus, "Whether the search bar will be focused by default when opening containers");
+            minimumContainerSize = cfg.getInt("minimumContainerSize", GENERAL, minimumContainerSize, 0, Integer.MAX_VALUE, "Minimum size a container must be for a search bar to be added");
+        } catch (Exception e1) {
+        	SearchableChests.logger.log(Level.ERROR, "Problem loading config file for Searchable Chests", e1);
+        } finally {
+            if (cfg.hasChanged()) {
+                cfg.save();
+            }
+        }
 	}
 }

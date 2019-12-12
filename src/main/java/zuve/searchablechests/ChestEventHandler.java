@@ -24,7 +24,6 @@ import net.minecraftforge.client.event.GuiContainerEvent;
 import net.minecraftforge.client.event.GuiScreenEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.config.ModConfig;
 
 @EventBusSubscriber(modid = "searchablechests")
 public class ChestEventHandler {
@@ -36,6 +35,8 @@ public class ChestEventHandler {
 	private ArrayList<Slot> nonMatchingSlots;
 	private String searchString;
 	private ResourceLocation searchBar = new ResourceLocation("searchablechests", "textures/gui/search_bar.png");
+	private long lastClickTime;
+	private int clickCount;
 
 	public ChestEventHandler() {
 		mc = Minecraft.getMinecraft();
@@ -44,20 +45,11 @@ public class ChestEventHandler {
 	}
 
 	@SubscribeEvent
-	public static void onModConfigEvent(final ModConfig.ModConfigEvent event) {
-		final ModConfig config = event.getConfig();
-		if (config.getSpec() == SearchableChests.CONFIG_SPEC) {
-			SearchableChestsConfig.autoFocus = SearchableChests.CONFIG.autoFocus.get();
-			SearchableChestsConfig.minimumContainerSize = SearchableChests.CONFIG.minimumContainerSize.get();
-		}
-	}
-
-	@SubscribeEvent
 	public void onInitGui(GuiScreenEvent.InitGuiEvent.Post event) {
 		GuiScreen gui = event.getGui();
 		if (gui instanceof GuiContainer && !(gui instanceof InventoryEffectRenderer)
 				&& ((GuiContainer) gui).inventorySlots.getInventory().size() >= 36
-						+ SearchableChestsConfig.minimumContainerSize) {
+						+ Config.minimumContainerSize) {
 			Keyboard.enableRepeatEvents(true);
 			FontRenderer fontRenderer = mc.fontRenderer;
 			searchField = new GuiTextField(0, fontRenderer, 81, 6, 80, fontRenderer.FONT_HEIGHT);
@@ -67,7 +59,7 @@ public class ChestEventHandler {
 			searchField.setTextColor(16777215);
 			searchField.setCanLoseFocus(true);
 			searchField.setVisible(true);
-			searchField.setFocused(SearchableChestsConfig.autoFocus);
+			searchField.setFocused(Config.autoFocus);
 		} else {
 			searchField = null;
 		}
@@ -93,7 +85,7 @@ public class ChestEventHandler {
 			int keyCode = Keyboard.getEventKey();
 			char keyChar = Keyboard.getEventCharacter();
 			if (searchField.isFocused()) {
-				if (keyCode == 69 || (keyCode >= 262 && keyCode <= 265)) {
+				if (keyCode == mc.gameSettings.keyBindInventory.getKeyCode() || (keyCode >= 262 && keyCode <= 265)) {
 					event.setCanceled(true);
 					switch (keyCode) {
 					case 262:
@@ -177,13 +169,39 @@ public class ChestEventHandler {
 	@SubscribeEvent
 	public void onMouseClicked(GuiScreenEvent.MouseInputEvent.Pre event) {
 		if (searchField != null) {
+			long clickTime = System.currentTimeMillis();
+			if (clickTime - lastClickTime <= 475) {
+				clickCount++;
+				lastClickTime = System.currentTimeMillis();
+			} else {
+				clickCount = 1;
+				lastClickTime = System.currentTimeMillis();
+			}
 			int x = Mouse.getEventX() - ((GuiContainer) event.getGui()).getGuiLeft();
 			int y = Mouse.getEventY() - ((GuiContainer) event.getGui()).getGuiTop();
 
-			int initialCursorPos = searchField.getCursorPosition();
+			int lastCursorPos = searchField.getCursorPosition();
 			searchField.mouseClicked(x, y, Mouse.getEventButton());
-			if (GuiScreen.isShiftKeyDown()) {
-				searchField.setSelectionPos(initialCursorPos);
+			int cursorPos = searchField.getCursorPosition();
+
+			if (!GuiScreen.isShiftKeyDown()) {
+				searchField.setSelectionPos(searchField.getCursorPosition());
+			}
+
+			if (cursorPos == lastCursorPos || clickCount == 3) {
+				switch (clickCount) {
+				case 2:
+					searchField.setCursorPosition(searchField.getNthWordFromCursor(1)
+							- ((searchField.getNthWordFromCursor(1) == searchField.getText().length()) ? 0 : 1));
+					searchField.setSelectionPos(searchField.getNthWordFromCursor(-1));
+					break;
+				case 3:
+					searchField.setCursorPositionEnd();
+					searchField.setSelectionPos(0);
+					break;
+				}
+			} else {
+				clickCount = 1;
 			}
 		}
 	}

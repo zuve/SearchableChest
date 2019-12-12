@@ -7,7 +7,7 @@
 <listEntry value="4"/>
 </listAttribute>
 <stringAttribute key="org.eclipse.jdt.launching.CLASSPATH_PROVIDER" value="org.eclipse.buildship.core.classpathprovider"/>
-<stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="GradleStart"/>
+<stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="net.minecraft.client.main.Main"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="Searchable Chests"/>
 <stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-DFORGE_FORCE_FRAME_RECALC=true --illegal-access=warn"/>
 <stringAttribute key="org.eclipse.jdt.launching.WORKING_DIRECTORY" value="C:\Users\zaden\Documents\Modding\Searchable Chests\run"/>
