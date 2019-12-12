@@ -20,13 +20,14 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
+import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.GuiContainerEvent;
 import net.minecraftforge.client.event.GuiScreenEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.config.ModConfig;
 
-@EventBusSubscriber(modid = "searchablechests", bus = EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = "searchablechests", value = Dist.CLIENT, bus = EventBusSubscriber.Bus.MOD)
 public class ChestEventHandler {
 
 	private boolean skip;
@@ -49,14 +50,17 @@ public class ChestEventHandler {
 		if (config.getSpec() == SearchableChests.CONFIG_SPEC) {
 			SearchableChestsConfig.autoFocus = SearchableChests.CONFIG.autoFocus.get();
 			SearchableChestsConfig.minimumContainerSize = SearchableChests.CONFIG.minimumContainerSize.get();
+			SearchableChestsConfig.blacklist = SearchableChests.CONFIG.blacklist.get();
 		}
 	}
 
 	@SubscribeEvent
 	public void onInitGui(GuiScreenEvent.InitGuiEvent.Post event) {
 		Screen gui = event.getGui();
-		if (gui instanceof ContainerScreen && !(gui instanceof InventoryScreen) && ((ContainerScreen<?>) gui)
-				.getContainer().getInventory().size() >= 36 + SearchableChestsConfig.minimumContainerSize) {
+		if (gui instanceof ContainerScreen && !(gui instanceof InventoryScreen)
+				&& ((ContainerScreen<?>) gui).getContainer().getInventory().size() >= 36
+						+ SearchableChestsConfig.minimumContainerSize
+				&& !SearchableChestsConfig.blacklist.contains(gui.getTitle().getString())) {
 			mc.keyboardListener.enableRepeatEvents(true);
 			FontRenderer fontRenderer = mc.fontRenderer;
 			searchField = new TextFieldWidget(fontRenderer, 81, 6, 80, fontRenderer.FONT_HEIGHT, "");
