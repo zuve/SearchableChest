@@ -19,13 +19,14 @@ import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
+import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.GuiContainerEvent;
 import net.minecraftforge.client.event.GuiScreenEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.config.ModConfig;
 
-@EventBusSubscriber(modid = "searchablechests", bus = EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = "searchablechests", value = Dist.CLIENT, bus = EventBusSubscriber.Bus.MOD)
 public class ChestEventHandler {
 
 	private boolean skip;
