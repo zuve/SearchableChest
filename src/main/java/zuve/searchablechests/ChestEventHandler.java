@@ -60,7 +60,8 @@ public class ChestEventHandler {
 		if (gui instanceof ContainerScreen && !(gui instanceof InventoryScreen)
 				&& ((ContainerScreen<?>) gui).getContainer().getInventory().size() >= 36
 						+ SearchableChestsConfig.minimumContainerSize
-				&& !SearchableChestsConfig.blacklist.contains(gui.getTitle().getString())) {
+				&& !SearchableChestsConfig.blacklist.contains(gui.getTitle().getString())
+				&& !SearchableChestsConfig.blacklistCode.contains(gui.getClass().getName())) {
 			mc.keyboardListener.enableRepeatEvents(true);
 			FontRenderer fontRenderer = mc.fontRenderer;
 			searchField = new TextFieldWidget(fontRenderer, 81, 6, 80, fontRenderer.FONT_HEIGHT, "");

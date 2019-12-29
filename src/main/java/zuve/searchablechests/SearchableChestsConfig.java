@@ -6,4 +6,5 @@ public class SearchableChestsConfig {
 	public static boolean autoFocus;
 	public static ArrayList<String> blacklist;
 	public static int minimumContainerSize;
+	public static ArrayList<String> blacklistCode = new ArrayList<String>();
 }
