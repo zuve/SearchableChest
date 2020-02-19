@@ -3,7 +3,7 @@ package zuve.searchablechests;
 import java.util.ArrayList;
 import java.util.Locale;
 
-import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.AbstractGui;
@@ -217,8 +217,8 @@ public class ChestEventHandler {
 	@SubscribeEvent
 	public void onForeground(GuiContainerEvent.DrawForeground event) {
 		if (searchField != null) {
-			GlStateManager.disableLighting();
-			GlStateManager.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+			RenderSystem.disableLighting();
+			RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
 			mc.getTextureManager().bindTexture(searchBar);
 			AbstractGui.blit(79, 4, 0.0F, 0.0F, 90, 12, 90, 12);
 			searchField.render(event.getMouseX(), event.getMouseY(), mc.getRenderPartialTicks());
@@ -237,11 +237,11 @@ public class ChestEventHandler {
 			for (Slot s : nonMatchingSlots) {
 				int x = s.xPos;
 				int y = s.yPos;
-				GlStateManager.disableDepthTest();
+				RenderSystem.disableDepthTest();
 				AbstractGui.fill(x, y, x + 16, y + 16, 0x80FF0000);
-				GlStateManager.enableDepthTest();
+				RenderSystem.enableDepthTest();
 			}
-			GlStateManager.enableLighting();
+			RenderSystem.enableLighting();
 		}
 	}
 
