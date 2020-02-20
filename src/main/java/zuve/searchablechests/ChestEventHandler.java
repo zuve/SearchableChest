@@ -217,7 +217,6 @@ public class ChestEventHandler {
 	@SubscribeEvent
 	public void onForeground(GuiContainerEvent.DrawForeground event) {
 		if (searchField != null) {
-			RenderSystem.disableLighting();
 			RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
 			mc.getTextureManager().bindTexture(searchBar);
 			AbstractGui.blit(79, 4, 0.0F, 0.0F, 90, 12, 90, 12);
@@ -241,7 +240,6 @@ public class ChestEventHandler {
 				AbstractGui.fill(x, y, x + 16, y + 16, 0x80FF0000);
 				RenderSystem.enableDepthTest();
 			}
-			RenderSystem.enableLighting();
 		}
 	}
 
