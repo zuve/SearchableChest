@@ -217,12 +217,13 @@ public class ChestEventHandler {
 			double x = event.getMouseX() - ((ContainerScreen<?>) event.getGui()).getGuiLeft();
 			double y = event.getMouseY() - ((ContainerScreen<?>) event.getGui()).getGuiTop();
 
-			int lastCursorPos = searchField.getCursorPosition();
 			boolean alreadyFocused = searchField.isFocused();
+
+			int lastCursorPos = searchField.getCursorPosition();
 			boolean overSearchField = searchField.mouseClicked(x, y, event.getButton());
 			int cursorPos = searchField.getCursorPosition();
 
-			if (alreadyFocused) {
+			if (alreadyFocused && overSearchField) {
 
 				if (!Screen.hasShiftDown()) {
 					searchField.setSelectionPos(searchField.getCursorPosition());
