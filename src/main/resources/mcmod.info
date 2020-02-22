@@ -3,7 +3,7 @@
   "modid": "searchablechests",
   "name": "Searchable Chests",
   "description": "Allows for the searching of chests similar to inventory search in creative mode.",
-  "version": "1.12-1.5.3",
+  "version": "1.12-1.5.3-2",
   "mcversion": "1.12",
   "url": "",
   "updateUrl": "",

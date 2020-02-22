@@ -55,7 +55,7 @@ public class ChestEventHandler {
 			searchField = new GuiTextField(0, fontRenderer, 81, 6, 80, fontRenderer.FONT_HEIGHT);
 			searchField.setText("");
 			searchField.setMaxStringLength(50);
-			searchField.setEnableBackgroundDrawing(true);
+			searchField.setEnableBackgroundDrawing(false);
 			searchField.setTextColor(16777215);
 			searchField.setCanLoseFocus(true);
 			searchField.setVisible(true);
@@ -188,12 +188,11 @@ public class ChestEventHandler {
 
 			boolean alreadyFocused = searchField.isFocused();
 			
+			int lastCursorPos = searchField.getCursorPosition();
 			boolean overSearchField = searchField.mouseClicked(x, y, Mouse.getEventButton());
+			int cursorPos = searchField.getCursorPosition();
 			
-			if (alreadyFocused) {
-
-				int lastCursorPos = searchField.getCursorPosition();
-				int cursorPos = searchField.getCursorPosition();
+			if (alreadyFocused && overSearchField) {
 
 				if (!GuiScreen.isShiftKeyDown()) {
 					searchField.setSelectionPos(searchField.getCursorPosition());
