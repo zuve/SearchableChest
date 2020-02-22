@@ -11,6 +11,7 @@ import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiTextField;
+import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.InventoryEffectRenderer;
@@ -22,16 +23,15 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.event.GuiContainerEvent;
 import net.minecraftforge.client.event.GuiScreenEvent;
-import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
-@EventBusSubscriber(modid = "searchablechests")
 public class ChestEventHandler {
 
 	private boolean skip;
 
 	private Minecraft mc;
 	private GuiTextField searchField;
+	private GuiContainer screen;
 	private ArrayList<Slot> nonMatchingSlots;
 	private String searchString;
 	private ResourceLocation searchBar = new ResourceLocation("searchablechests", "textures/gui/search_bar.png");
@@ -48,14 +48,14 @@ public class ChestEventHandler {
 	public void onInitGui(GuiScreenEvent.InitGuiEvent.Post event) {
 		GuiScreen gui = event.getGui();
 		if (gui instanceof GuiContainer && !(gui instanceof InventoryEffectRenderer)
-				&& ((GuiContainer) gui).inventorySlots.getInventory().size() >= 36
-						+ Config.minimumContainerSize) {
+				&& ((GuiContainer) gui).inventorySlots.getInventory().size() >= 36 + Config.minimumContainerSize) {
+			screen = (GuiContainer) gui;
 			Keyboard.enableRepeatEvents(true);
 			FontRenderer fontRenderer = mc.fontRenderer;
 			searchField = new GuiTextField(0, fontRenderer, 81, 6, 80, fontRenderer.FONT_HEIGHT);
 			searchField.setText("");
 			searchField.setMaxStringLength(50);
-			searchField.setEnableBackgroundDrawing(false);
+			searchField.setEnableBackgroundDrawing(true);
 			searchField.setTextColor(16777215);
 			searchField.setCanLoseFocus(true);
 			searchField.setVisible(true);
@@ -71,7 +71,8 @@ public class ChestEventHandler {
 			if (skip) {
 				skip = false;
 			} else {
-				if (searchField.isFocused() && searchField.textboxKeyTyped(Keyboard.getEventCharacter(), Keyboard.getEventKey())) {
+				if (searchField.isFocused()
+						&& searchField.textboxKeyTyped(Keyboard.getEventCharacter(), Keyboard.getEventKey())) {
 					event.setCanceled(true);
 				}
 			}
@@ -80,7 +81,6 @@ public class ChestEventHandler {
 
 	@SubscribeEvent
 	public void onKeyPressed(GuiScreenEvent.KeyboardInputEvent event) {
-		System.out.println("fire");
 		if (searchField != null) {
 			int keyCode = Keyboard.getEventKey();
 			char keyChar = Keyboard.getEventCharacter();
@@ -167,8 +167,8 @@ public class ChestEventHandler {
 	}
 
 	@SubscribeEvent
-	public void onMouseClicked(GuiScreenEvent.MouseInputEvent.Pre event) {
-		if (searchField != null) {
+	public void onMouseEvent(GuiScreenEvent.MouseInputEvent.Pre event) {
+		if (searchField != null && Mouse.getEventButtonState()) {
 			long clickTime = System.currentTimeMillis();
 			if (clickTime - lastClickTime <= 475) {
 				clickCount++;
@@ -177,31 +177,46 @@ public class ChestEventHandler {
 				clickCount = 1;
 				lastClickTime = System.currentTimeMillis();
 			}
-			int x = Mouse.getEventX() - ((GuiContainer) event.getGui()).getGuiLeft();
-			int y = Mouse.getEventY() - ((GuiContainer) event.getGui()).getGuiTop();
 
-			int lastCursorPos = searchField.getCursorPosition();
-			searchField.mouseClicked(x, y, Mouse.getEventButton());
-			int cursorPos = searchField.getCursorPosition();
+			int scaleFactor = new ScaledResolution(mc).getScaleFactor();
 
-			if (!GuiScreen.isShiftKeyDown()) {
-				searchField.setSelectionPos(searchField.getCursorPosition());
-			}
+			// Correct mouse location, for whatever reason textbox click method doesn't work
+			// with raw mouse data.
+			int x = (Mouse.getEventX() - screen.getGuiLeft() * scaleFactor) / scaleFactor;
+			int y = ((screen.height * scaleFactor - Mouse.getEventY()) - screen.getGuiTop() * scaleFactor)
+					/ scaleFactor;
 
-			if (cursorPos == lastCursorPos || clickCount == 3) {
-				switch (clickCount) {
-				case 2:
-					searchField.setCursorPosition(searchField.getNthWordFromCursor(1)
-							- ((searchField.getNthWordFromCursor(1) == searchField.getText().length()) ? 0 : 1));
-					searchField.setSelectionPos(searchField.getNthWordFromCursor(-1));
-					break;
-				case 3:
-					searchField.setCursorPositionEnd();
-					searchField.setSelectionPos(0);
-					break;
+			boolean alreadyFocused = searchField.isFocused();
+			
+			boolean overSearchField = searchField.mouseClicked(x, y, Mouse.getEventButton());
+			
+			if (alreadyFocused) {
+
+				int lastCursorPos = searchField.getCursorPosition();
+				int cursorPos = searchField.getCursorPosition();
+
+				if (!GuiScreen.isShiftKeyDown()) {
+					searchField.setSelectionPos(searchField.getCursorPosition());
 				}
-			} else {
-				clickCount = 1;
+
+				if (cursorPos == lastCursorPos || clickCount == 3) {
+					switch (clickCount) {
+					case 2:
+						searchField.setCursorPosition(searchField.getNthWordFromCursor(1)
+								- ((searchField.getNthWordFromCursor(1) == searchField.getText().length()) ? 0 : 1));
+						searchField.setSelectionPos(searchField.getNthWordFromCursor(-1));
+						break;
+					case 3:
+						searchField.setCursorPositionEnd();
+						searchField.setSelectionPos(0);
+						break;
+					}
+				} else {
+					clickCount = 1;
+				}
+			} else if (overSearchField) {
+				searchField.setCursorPositionEnd();
+				searchField.setSelectionPos(0);
 			}
 		}
 	}
@@ -213,6 +228,7 @@ public class ChestEventHandler {
 			GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
 			mc.getTextureManager().bindTexture(searchBar);
 			Gui.drawModalRectWithCustomSizedTexture(79, 4, 0.0F, 0.0F, 90, 12, 90, 12);
+			searchField.setEnabled(true);
 			searchField.drawTextBox();
 			if (!searchString.equals(searchField.getText())) {
 				searchString = searchField.getText();
