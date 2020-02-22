@@ -2,7 +2,7 @@ modLoader="javafml" #mandatory
 loaderVersion="[25,)" #mandatory (24 is current forge version)
 [[mods]] #mandatory
 modId="searchablechests" #mandatory
-version="1.15-1.5.4" #mandatory
+version="1.15-1.5.4-2" #mandatory
 displayName="Searchable Chests" #mandatory
 authors="Zuve" #optional
 description='''
