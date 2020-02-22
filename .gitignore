@@ -1,6 +1,11 @@
 # eclipse
 bin
 /java
+*.launch
+.settings
+.metadata
+.classpath
+.project
 
 # idea
 out
