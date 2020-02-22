@@ -37,6 +37,8 @@ public class ChestEventHandler {
 	private ArrayList<Slot> nonMatchingSlots;
 	private String searchString;
 	private ResourceLocation searchBar = new ResourceLocation("searchablechests", "textures/gui/search_bar.png");
+	private long lastClickTime;
+	private int clickCount;
 
 	public ChestEventHandler() {
 		mc = Minecraft.getInstance();
@@ -204,12 +206,46 @@ public class ChestEventHandler {
 	@SubscribeEvent
 	public void onMouseClicked(GuiScreenEvent.MouseClickedEvent.Pre event) {
 		if (searchField != null) {
+			long clickTime = System.currentTimeMillis();
+			if (clickTime - lastClickTime <= 475) {
+				clickCount++;
+				lastClickTime = System.currentTimeMillis();
+			} else {
+				clickCount = 1;
+				lastClickTime = System.currentTimeMillis();
+			}
 			double x = event.getMouseX() - ((ContainerScreen<?>) event.getGui()).getGuiLeft();
 			double y = event.getMouseY() - ((ContainerScreen<?>) event.getGui()).getGuiTop();
 
-			searchField.mouseClicked(x, y, event.getButton());
-			if (!Screen.hasShiftDown()) {
-				searchField.setSelectionPos(searchField.getCursorPosition());
+			int lastCursorPos = searchField.getCursorPosition();
+			boolean alreadyFocused = searchField.isFocused();
+			boolean overSearchField = searchField.mouseClicked(x, y, event.getButton());
+			int cursorPos = searchField.getCursorPosition();
+
+			if (alreadyFocused) {
+
+				if (!Screen.hasShiftDown()) {
+					searchField.setSelectionPos(searchField.getCursorPosition());
+				}
+
+				if (cursorPos == lastCursorPos || clickCount == 3) {
+					switch (clickCount) {
+					case 2:
+						searchField.setCursorPosition(searchField.getNthWordFromCursor(1)
+								- ((searchField.getNthWordFromCursor(1) == searchField.getText().length()) ? 0 : 1));
+						searchField.setSelectionPos(searchField.getNthWordFromCursor(-1));
+						break;
+					case 3:
+						searchField.setCursorPositionEnd();
+						searchField.setSelectionPos(0);
+						break;
+					}
+				} else {
+					clickCount = 1;
+				}
+			} else if (overSearchField) {
+				searchField.setCursorPositionEnd();
+				searchField.setSelectionPos(0);
 			}
 		}
 	}
