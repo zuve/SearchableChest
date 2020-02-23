@@ -207,9 +207,6 @@ public class ChestEventHandler {
 			int cursorPos = searchField.getCursorPosition();
 
 			if (alreadyFocused && overSearchField) {
-
-				updateCursorPosition(searchField.getCursorPosition());
-
 				if (cursorPos == lastCursorPos || clickCount == 3) {
 					switch (clickCount) {
 					case 2:
