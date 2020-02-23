@@ -46,6 +46,7 @@ public class ChestEventHandler {
 		final ModConfig config = event.getConfig();
 		if (config.getSpec() == SearchableChests.CONFIG_SPEC) {
 			SearchableChestsConfig.autoFocus = SearchableChests.CONFIG.autoFocus.get();
+			SearchableChestsConfig.autoSelect = SearchableChests.CONFIG.autoSelect.get();
 			SearchableChestsConfig.minimumContainerSize = SearchableChests.CONFIG.minimumContainerSize.get();
 		}
 	}
@@ -214,7 +215,7 @@ public class ChestEventHandler {
 				} else {
 					clickCount = 1;
 				}
-			} else if (overSearchField) {
+			} else if (overSearchField && SearchableChestsConfig.autoFocus) {
 				searchField.setCursorPositionEnd();
 				searchField.setSelectionPos(0);
 			} else {
