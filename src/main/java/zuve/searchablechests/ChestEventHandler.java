@@ -32,16 +32,12 @@ public class ChestEventHandler {
 	private Minecraft mc;
 	private GuiTextField searchField;
 	private GuiContainer screen;
-	private ArrayList<Slot> nonMatchingSlots;
-	private String searchString;
 	private ResourceLocation searchBar = new ResourceLocation("searchablechests", "textures/gui/search_bar.png");
 	private long lastClickTime;
 	private int clickCount;
 
 	public ChestEventHandler() {
 		mc = Minecraft.getMinecraft();
-		nonMatchingSlots = new ArrayList<Slot>();
-		searchString = "";
 	}
 
 	@SubscribeEvent
@@ -187,11 +183,11 @@ public class ChestEventHandler {
 					/ scaleFactor;
 
 			boolean alreadyFocused = searchField.isFocused();
-			
+
 			int lastCursorPos = searchField.getCursorPosition();
 			boolean overSearchField = searchField.mouseClicked(x, y, Mouse.getEventButton());
 			int cursorPos = searchField.getCursorPosition();
-			
+
 			if (alreadyFocused && overSearchField) {
 
 				if (!GuiScreen.isShiftKeyDown()) {
@@ -231,24 +227,17 @@ public class ChestEventHandler {
 			Gui.drawModalRectWithCustomSizedTexture(79, 4, 0.0F, 0.0F, 90, 12, 90, 12);
 			searchField.setEnabled(true);
 			searchField.drawTextBox();
-			if (!searchString.equals(searchField.getText())) {
-				searchString = searchField.getText();
-				nonMatchingSlots.clear();
-				for (Slot s : event.getGuiContainer().inventorySlots.inventorySlots) {
-					if (!(s.inventory instanceof InventoryPlayer)) {
-						ItemStack stack = s.getStack();
-						if (!stackMatches(searchField.getText(), stack)) {
-							nonMatchingSlots.add(s);
-						}
+			for (Slot s : event.getGuiContainer().inventorySlots.inventorySlots) {
+				if (!(s.inventory instanceof InventoryPlayer)) {
+					ItemStack stack = s.getStack();
+					if (!stackMatches(searchField.getText(), stack)) {
+						int x = s.xPos;
+						int y = s.yPos;
+						GlStateManager.disableDepth();
+						Gui.drawRect(x, y, x + 16, y + 16, 0x80FF0000);
+						GlStateManager.enableDepth();
 					}
 				}
-			}
-			for (Slot s : nonMatchingSlots) {
-				int x = s.xPos;
-				int y = s.yPos;
-				GlStateManager.disableDepth();
-				Gui.drawRect(x, y, x + 16, y + 16, 0x80FF0000);
-				GlStateManager.enableDepth();
 			}
 			GlStateManager.enableLighting();
 		}
