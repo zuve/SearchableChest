@@ -34,16 +34,12 @@ public class ChestEventHandler {
 
 	private Minecraft mc;
 	private TextFieldWidget searchField;
-	private ArrayList<Slot> nonMatchingSlots;
-	private String searchString;
 	private ResourceLocation searchBar = new ResourceLocation("searchablechests", "textures/gui/search_bar.png");
 	private long lastClickTime;
 	private int clickCount;
 
 	public ChestEventHandler() {
 		mc = Minecraft.getInstance();
-		nonMatchingSlots = new ArrayList<Slot>();
-		searchString = "";
 	}
 
 	@SubscribeEvent
@@ -260,24 +256,17 @@ public class ChestEventHandler {
 			mc.getTextureManager().bindTexture(searchBar);
 			AbstractGui.blit(79, 4, 0.0F, 0.0F, 90, 12, 90, 12);
 			searchField.render(event.getMouseX(), event.getMouseY(), mc.getRenderPartialTicks());
-			if (!searchString.equals(searchField.getText())) {
-				searchString = searchField.getText();
-				nonMatchingSlots.clear();
-				for (Slot s : event.getGuiContainer().getContainer().inventorySlots) {
-					if (!(s.inventory instanceof PlayerInventory)) {
-						ItemStack stack = s.getStack();
-						if (!stackMatches(searchField.getText(), stack)) {
-							nonMatchingSlots.add(s);
-						}
+			for (Slot s : event.getGuiContainer().getContainer().inventorySlots) {
+				if (!(s.inventory instanceof PlayerInventory)) {
+					ItemStack stack = s.getStack();
+					if (!stackMatches(searchField.getText(), stack)) {
+						int x = s.xPos;
+						int y = s.yPos;
+						RenderSystem.disableDepthTest();
+						AbstractGui.fill(x, y, x + 16, y + 16, 0x80FF0000);
+						RenderSystem.enableDepthTest();
 					}
 				}
-			}
-			for (Slot s : nonMatchingSlots) {
-				int x = s.xPos;
-				int y = s.yPos;
-				RenderSystem.disableDepthTest();
-				AbstractGui.fill(x, y, x + 16, y + 16, 0x80FF0000);
-				RenderSystem.enableDepthTest();
 			}
 		}
 	}
