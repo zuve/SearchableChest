@@ -75,12 +75,10 @@ public class ChestEventHandler {
 	@SubscribeEvent
 	public void onCharTyped(GuiScreenEvent.KeyboardCharTypedEvent.Pre event) {
 		if (searchField != null) {
-			if (skip) {
-				skip = false;
+			if (!skip) {
+				searchField.charTyped(event.getCodePoint(), event.getCodePoint());
 			} else {
-				if (searchField.isFocused() && searchField.charTyped(event.getCodePoint(), event.getCodePoint())) {
-					event.setCanceled(true);
-				}
+				skip = false;
 			}
 		}
 	}
@@ -90,10 +88,14 @@ public class ChestEventHandler {
 		if (searchField != null) {
 			int keyCode = event.getKeyCode();
 			int scanCode = event.getScanCode();
-			if (searchField.isFocused()) {
-				if (keyCode == mc.gameSettings.keyBindInventory.getKey().getKeyCode()
-						|| (keyCode >= 262 && keyCode <= 265)) {
-					event.setCanceled(true);
+
+			if (mc.gameSettings.keyBindChat.matchesKey(keyCode, scanCode)) {
+				if (!searchField.keyPressed(keyCode, scanCode, event.getModifiers())) {
+					searchField.setFocused(true);
+					skip = true;
+				}
+			} else {
+				if (keyCode >= 262 && keyCode <= 265) {
 					switch (keyCode) {
 					case 262:
 						if (GuiScreen.isShiftKeyDown()) {
@@ -155,20 +157,13 @@ public class ChestEventHandler {
 						break;
 					}
 					return;
-				}
-				if (searchField.keyPressed(keyCode, scanCode, event.getModifiers())) {
+				} else if (searchField.keyPressed(keyCode, scanCode, event.getModifiers())) {
 					for (int i = 0; i < 9; ++i) {
 						if (mc.gameSettings.keyBindsHotbar[i]
 								.isActiveAndMatches(InputMappings.getInputByCode(keyCode, scanCode))) {
 							event.setCanceled(true);
 						}
 					}
-				}
-			} else {
-				if (mc.gameSettings.keyBindChat.matchesKey(keyCode, scanCode)) {
-					searchField.setFocused(true);
-					event.setCanceled(true);
-					skip = true;
 				}
 			}
 		}
