@@ -62,101 +62,92 @@ public class ChestEventHandler {
 	}
 
 	@SubscribeEvent
-	public void onCharTyped(GuiScreenEvent.KeyboardInputEvent.Pre event) {
-		if (searchField != null) {
+	public void onKeyPressed(GuiScreenEvent.KeyboardInputEvent event) {
+		if (searchField != null && Keyboard.getEventKeyState()) {
+
 			if (skip) {
 				skip = false;
 			} else {
-				if (searchField.isFocused()
-						&& searchField.textboxKeyTyped(Keyboard.getEventCharacter(), Keyboard.getEventKey())) {
-					event.setCanceled(true);
-				}
-			}
-		}
-	}
-
-	@SubscribeEvent
-	public void onKeyPressed(GuiScreenEvent.KeyboardInputEvent event) {
-		if (searchField != null) {
-			int keyCode = Keyboard.getEventKey();
-			char keyChar = Keyboard.getEventCharacter();
-			if (searchField.isFocused()) {
-				if (keyCode == mc.gameSettings.keyBindInventory.getKeyCode() || (keyCode >= 262 && keyCode <= 265)) {
-					event.setCanceled(true);
-					switch (keyCode) {
-					case 262:
-						if (GuiScreen.isShiftKeyDown()) {
-							if (searchField.getSelectedText().isEmpty()) {
-								searchField.setSelectionPos(searchField.getCursorPosition());
-							}
-							if (GuiScreen.isCtrlKeyDown()) {
-								searchField.setCursorPosition(searchField.getNthWordFromCursor(1));
+				skip = true;
+				int keyCode = Keyboard.getEventKey();
+				char keyChar = Keyboard.getEventCharacter();
+				if (searchField.isFocused()) {
+					System.out.println(keyCode);
+					if (keyCode == 200 || keyCode == 203 || keyCode == 205 || keyCode == 208) {
+						event.setCanceled(true);
+						switch (keyCode) {
+						case 200:
+							if (GuiScreen.isShiftKeyDown()) {
+								searchField.setSelectionPos(0);
 							} else {
-								searchField.setCursorPosition(searchField.getCursorPosition() + 1);
+								searchField.setCursorPositionZero();
 							}
-						} else if (GuiScreen.isCtrlKeyDown()) {
-							searchField.setCursorPosition(searchField.getNthWordFromCursor(1));
-						} else if (!searchField.getSelectedText().isEmpty()) {
-							int rightSelection = searchField.getCursorPosition() > searchField.getSelectionEnd()
-									? searchField.getCursorPosition()
-									: searchField.getSelectionEnd();
-							searchField.setCursorPosition(rightSelection);
-						} else {
-							searchField.moveCursorBy(1);
-						}
-						break;
-					case 263:
-						if (GuiScreen.isShiftKeyDown()) {
-							if (searchField.getSelectedText().isEmpty()) {
-								searchField.setSelectionPos(searchField.getCursorPosition());
-							}
-							if (GuiScreen.isCtrlKeyDown()) {
+							break;
+						case 203:
+							if (GuiScreen.isShiftKeyDown()) {
+								if (searchField.getSelectedText().isEmpty()) {
+									searchField.setSelectionPos(searchField.getCursorPosition());
+								}
+								if (GuiScreen.isCtrlKeyDown()) {
+									searchField.setCursorPosition(searchField.getNthWordFromCursor(-1));
+								} else {
+									searchField.setCursorPosition(searchField.getCursorPosition() - 1);
+								}
+							} else if (GuiScreen.isCtrlKeyDown()) {
 								searchField.setCursorPosition(searchField.getNthWordFromCursor(-1));
+							} else if (!searchField.getSelectedText().isEmpty()) {
+								int leftSelection = searchField.getCursorPosition() < searchField.getSelectionEnd()
+										? searchField.getCursorPosition()
+										: searchField.getSelectionEnd();
+								searchField.setCursorPosition(leftSelection);
 							} else {
-								searchField.setCursorPosition(searchField.getCursorPosition() - 1);
+								searchField.moveCursorBy(-1);
 							}
-						} else if (GuiScreen.isCtrlKeyDown()) {
-							searchField.setCursorPosition(searchField.getNthWordFromCursor(-1));
-						} else if (!searchField.getSelectedText().isEmpty()) {
-							int leftSelection = searchField.getCursorPosition() < searchField.getSelectionEnd()
-									? searchField.getCursorPosition()
-									: searchField.getSelectionEnd();
-							searchField.setCursorPosition(leftSelection);
-						} else {
-							searchField.moveCursorBy(-1);
+							break;
+						case 205:
+							if (GuiScreen.isShiftKeyDown()) {
+								if (searchField.getSelectedText().isEmpty()) {
+									searchField.setSelectionPos(searchField.getCursorPosition());
+								}
+								if (GuiScreen.isCtrlKeyDown()) {
+									searchField.setCursorPosition(searchField.getNthWordFromCursor(1));
+								} else {
+									searchField.setCursorPosition(searchField.getCursorPosition() + 1);
+								}
+							} else if (GuiScreen.isCtrlKeyDown()) {
+								searchField.setCursorPosition(searchField.getNthWordFromCursor(1));
+							} else if (!searchField.getSelectedText().isEmpty()) {
+								int rightSelection = searchField.getCursorPosition() > searchField.getSelectionEnd()
+										? searchField.getCursorPosition()
+										: searchField.getSelectionEnd();
+								searchField.setCursorPosition(rightSelection);
+							} else {
+								searchField.moveCursorBy(1);
+							}
+							break;
+						case 208:
+							if (GuiScreen.isShiftKeyDown()) {
+								searchField.setSelectionPos(searchField.getText().length());
+							} else {
+								searchField.setCursorPositionEnd();
+							}
+							break;
 						}
-						break;
-					case 264:
-						if (GuiScreen.isShiftKeyDown()) {
-							searchField.setSelectionPos(searchField.getText().length());
-						} else {
-							searchField.setCursorPositionEnd();
-							searchField.setSelectionPos(searchField.getCursorPosition());
-						}
-						break;
-					case 265:
-						if (GuiScreen.isShiftKeyDown()) {
-							searchField.setSelectionPos(0);
-						} else {
-							searchField.setCursorPositionZero();
-							searchField.setSelectionPos(searchField.getCursorPosition());
-						}
-						break;
+						return;
 					}
-					return;
-				}
-				if (searchField.textboxKeyTyped(keyChar, keyCode)) {
-					for (int i = 0; i < 9; ++i) {
-						if (mc.gameSettings.keyBindsHotbar[i].isActiveAndMatches(keyCode)) {
-							event.setCanceled(true);
+					if (searchField.textboxKeyTyped(keyChar, keyCode)) {
+						for (int i = 0; i < 9; ++i) {
+							if (mc.gameSettings.keyBindsHotbar[i].isActiveAndMatches(keyCode)) {
+								event.setCanceled(true);
+							}
 						}
 					}
-				}
-			} else {
-				if (mc.gameSettings.keyBindChat.isActiveAndMatches(keyCode)) {
-					searchField.setFocused(true);
-					event.setCanceled(true);
-					skip = true;
+				} else {
+					if (mc.gameSettings.keyBindChat.isActiveAndMatches(keyCode)) {
+						searchField.setFocused(true);
+						event.setCanceled(true);
+						skip = true;
+					}
 				}
 			}
 		}
