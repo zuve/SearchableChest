@@ -213,7 +213,9 @@ public class ChestEventHandler {
 				searchField.setCursorPositionEnd();
 				searchField.setSelectionPos(0);
 			} else {
-				searchField.setCursorPositionZero();
+				if (Config.autoSelect) {
+					searchField.setCursorPositionZero();
+				}
 			}
 		}
 	}
