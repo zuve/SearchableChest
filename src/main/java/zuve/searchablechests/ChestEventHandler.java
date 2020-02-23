@@ -247,6 +247,8 @@ public class ChestEventHandler {
 			} else if (overSearchField) {
 				searchField.setCursorPositionEnd();
 				searchField.setSelectionPos(0);
+			} else {
+				searchField.setCursorPositionZero();
 			}
 		}
 	}
