@@ -189,12 +189,13 @@ public class ChestEventHandler {
 			boolean overSearchField = searchField.mouseClicked(x, y, event.getButton());
 			int cursorPos = searchField.getCursorPosition();
 
+			System.out.println(SearchableChestsConfig.autoFocus);
+			
 			if (alreadyFocused && overSearchField) {
-
-				if (!GuiScreen.isShiftKeyDown()) {
-					searchField.setSelectionPos(searchField.getCursorPosition());
+				if (GuiScreen.isShiftKeyDown()) {
+					searchField.setCursorPosition(lastCursorPos);
+					searchField.setSelectionPos(cursorPos);
 				}
-
 				if (cursorPos == lastCursorPos || clickCount == 3) {
 					switch (clickCount) {
 					case 2:
