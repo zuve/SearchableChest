@@ -19,6 +19,7 @@ import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.GuiContainerEvent;
@@ -34,6 +35,7 @@ public class ChestEventHandler {
 
 	private Minecraft mc;
 	private TextFieldWidget searchField;
+	private int selectionEnd;
 	private ResourceLocation searchBar = new ResourceLocation("searchablechests", "textures/gui/search_bar.png");
 	private long lastClickTime;
 	private int clickCount;
@@ -78,14 +80,25 @@ public class ChestEventHandler {
 	@SubscribeEvent
 	public void onCharTyped(GuiScreenEvent.KeyboardCharTypedEvent.Pre event) {
 		if (searchField != null) {
-			if (skip) {
-				skip = false;
+			if (!skip) {
+				searchField.charTyped(event.getCodePoint(), event.getCodePoint());
 			} else {
-				if (searchField.isFocused() && searchField.charTyped(event.getCodePoint(), event.getCodePoint())) {
-					event.setCanceled(true);
-				}
+				skip = false;
 			}
 		}
+	}
+
+	private void updateCursorPosition(int position) {
+		searchField.setCursorPosition(position);
+		if (!Screen.hasShiftDown()) {
+			updateSelectionEnd(position);
+		}
+	}
+
+	private void updateSelectionEnd(int position) {
+		int i = searchField.getText().length();
+		searchField.setSelectionPos(position);
+		selectionEnd = MathHelper.clamp(position, 0, i);
 	}
 
 	@SubscribeEvent
@@ -93,108 +106,81 @@ public class ChestEventHandler {
 		if (searchField != null) {
 			int keyCode = event.getKeyCode();
 			int scanCode = event.getScanCode();
-			if (searchField.isFocused()) {
-				if (keyCode == 69 || (keyCode >= 262 && keyCode <= 265)) {
-					event.setCanceled(true);
+
+			if (mc.gameSettings.keyBindChat.matchesKey(keyCode, scanCode)) {
+				if (!searchField.keyPressed(keyCode, scanCode, event.getModifiers())) {
+					searchField.setFocused2(true);
+					skip = true;
+				}
+			} else {
+				if (keyCode >= 262 && keyCode <= 265) {
 					switch (keyCode) {
 					case 262:
 						if (Screen.hasShiftDown()) {
 							if (searchField.getSelectedText().isEmpty()) {
-								searchField.setSelectionPos(searchField.getCursorPosition());
+								updateSelectionEnd(searchField.getCursorPosition());
 							}
 							if (Screen.hasControlDown()) {
-								searchField.setCursorPosition(searchField.getNthWordFromCursor(1));
+								updateCursorPosition(searchField.getNthWordFromCursor(1));
 							} else {
-								searchField.moveCursorBy(1);
+								updateCursorPosition(searchField.getCursorPosition() + 1);
 							}
 						} else if (Screen.hasControlDown()) {
-							searchField.setCursorPosition(searchField.getNthWordFromCursor(1));
-							searchField.setSelectionPos(searchField.getCursorPosition());
+							updateCursorPosition(searchField.getNthWordFromCursor(1));
 						} else if (!searchField.getSelectedText().isEmpty()) {
-							String text = searchField.getText();
-							String selectedText = searchField.getSelectedText();
-							int selectedTextLength = selectedText.length();
-							int cursorPosition = searchField.getCursorPosition();
-							int rightSelection;
-							if (cursorPosition + selectedTextLength < text.length()
-									&& text.substring(cursorPosition, cursorPosition + selectedTextLength)
-											.equals(selectedText)) {
-								rightSelection = cursorPosition + selectedTextLength;
-								searchField.setCursorPosition(rightSelection);
-							} else {
-								rightSelection = cursorPosition;
-								searchField.setSelectionPos(rightSelection);
-							}
+							int rightSelection = searchField.getCursorPosition() > selectionEnd
+									? searchField.getCursorPosition()
+									: selectionEnd;
+							updateCursorPosition(rightSelection);
 						} else {
-							searchField.moveCursorBy(1);
-							searchField.setSelectionPos(searchField.getCursorPosition());
+							updateCursorPosition(searchField.getCursorPosition() + 1);
 						}
 						break;
 					case 263:
 						if (Screen.hasShiftDown()) {
 							if (searchField.getSelectedText().isEmpty()) {
-								searchField.setSelectionPos(searchField.getCursorPosition());
+								updateSelectionEnd(searchField.getCursorPosition());
 							}
 							if (Screen.hasControlDown()) {
-								searchField.setCursorPosition(searchField.getNthWordFromCursor(-1));
+								updateCursorPosition(searchField.getNthWordFromCursor(-1));
 							} else {
-								searchField.moveCursorBy(-1);
+								updateCursorPosition(searchField.getCursorPosition() - 1);
 							}
 						} else if (Screen.hasControlDown()) {
-							searchField.setCursorPosition(searchField.getNthWordFromCursor(-1));
-							searchField.setSelectionPos(searchField.getCursorPosition());
+							updateCursorPosition(searchField.getNthWordFromCursor(-1));
 						} else if (!searchField.getSelectedText().isEmpty()) {
-							String text = searchField.getText();
-							String selectedText = searchField.getSelectedText();
-							int selectedTextLength = selectedText.length();
-							int cursorPosition = searchField.getCursorPosition();
-							int leftSelection;
-							if (cursorPosition + selectedTextLength < text.length()
-									&& text.substring(cursorPosition, cursorPosition + selectedTextLength)
-											.equals(selectedText)) {
-								leftSelection = cursorPosition;
-								searchField.setSelectionPos(leftSelection);
-							} else {
-								leftSelection = cursorPosition - selectedTextLength;
-								searchField.setCursorPosition(leftSelection);
-							}
+							int leftSelection = searchField.getCursorPosition() < selectionEnd
+									? searchField.getCursorPosition()
+									: selectionEnd;
+							updateCursorPosition(leftSelection);
 						} else {
-							searchField.moveCursorBy(-1);
-							searchField.setSelectionPos(searchField.getCursorPosition());
+							updateCursorPosition(searchField.getCursorPosition() - 1);
+							updateCursorPosition(searchField.getCursorPosition());
 						}
 						break;
 					case 264:
 						if (Screen.hasShiftDown()) {
-							searchField.setSelectionPos(searchField.getText().length());
+							updateSelectionEnd(searchField.getText().length());
 						} else {
-							searchField.setCursorPositionEnd();
-							searchField.setSelectionPos(searchField.getCursorPosition());
+							updateCursorPosition(searchField.getText().length());
 						}
 						break;
 					case 265:
 						if (Screen.hasShiftDown()) {
-							searchField.setSelectionPos(0);
+							updateSelectionEnd(0);
 						} else {
-							searchField.setCursorPositionZero();
-							searchField.setSelectionPos(searchField.getCursorPosition());
+							updateCursorPosition(0);
 						}
 						break;
 					}
 					return;
-				}
-				if (searchField.keyPressed(keyCode, scanCode, event.getModifiers())) {
+				} else if (searchField.keyPressed(keyCode, scanCode, event.getModifiers())) {
 					for (int i = 0; i < 9; ++i) {
 						if (mc.gameSettings.keyBindsHotbar[i]
 								.isActiveAndMatches(InputMappings.getInputByCode(keyCode, scanCode))) {
 							event.setCanceled(true);
 						}
 					}
-				}
-			} else {
-				if (mc.gameSettings.keyBindChat.matchesKey(keyCode, scanCode)) {
-					searchField.changeFocus(true);
-					event.setCanceled(true);
-					skip = true;
 				}
 			}
 		}
@@ -221,31 +207,30 @@ public class ChestEventHandler {
 			int cursorPos = searchField.getCursorPosition();
 
 			if (alreadyFocused && overSearchField) {
-
-				if (!Screen.hasShiftDown()) {
-					searchField.setSelectionPos(searchField.getCursorPosition());
+				if (Screen.hasShiftDown()) {
+					updateCursorPosition(lastCursorPos);
+					updateSelectionEnd(cursorPos);
 				}
-
 				if (cursorPos == lastCursorPos || clickCount == 3) {
 					switch (clickCount) {
 					case 2:
-						searchField.setCursorPosition(searchField.getNthWordFromCursor(1)
+						updateCursorPosition(searchField.getNthWordFromCursor(1)
 								- ((searchField.getNthWordFromCursor(1) == searchField.getText().length()) ? 0 : 1));
-						searchField.setSelectionPos(searchField.getNthWordFromCursor(-1));
+						updateSelectionEnd(searchField.getNthWordFromCursor(-1));
 						break;
 					case 3:
-						searchField.setCursorPositionEnd();
-						searchField.setSelectionPos(0);
+						updateCursorPosition(searchField.getText().length());
+						updateSelectionEnd(0);
 						break;
 					}
 				} else {
 					clickCount = 1;
 				}
 			} else if (overSearchField && SearchableChestsConfig.autoSelect) {
-				searchField.setCursorPositionEnd();
-				searchField.setSelectionPos(0);
+				updateCursorPosition(0);
+				updateSelectionEnd(searchField.getText().length());
 			} else {
-				searchField.setCursorPositionZero();
+				updateCursorPosition(0);
 			}
 		}
 	}
