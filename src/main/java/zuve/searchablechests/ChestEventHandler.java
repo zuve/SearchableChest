@@ -207,6 +207,10 @@ public class ChestEventHandler {
 			int cursorPos = searchField.getCursorPosition();
 
 			if (alreadyFocused && overSearchField) {
+				if (Screen.hasShiftDown()) {
+					updateCursorPosition(lastCursorPos);
+					updateSelectionEnd(cursorPos);
+				}
 				if (cursorPos == lastCursorPos || clickCount == 3) {
 					switch (clickCount) {
 					case 2:
@@ -223,8 +227,8 @@ public class ChestEventHandler {
 					clickCount = 1;
 				}
 			} else if (overSearchField && SearchableChestsConfig.autoSelect) {
-				updateCursorPosition(searchField.getText().length());
-				updateSelectionEnd(0);
+				updateCursorPosition(0);
+				updateSelectionEnd(searchField.getText().length());
 			} else {
 				updateCursorPosition(0);
 			}
