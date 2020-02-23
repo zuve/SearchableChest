@@ -190,8 +190,9 @@ public class ChestEventHandler {
 
 			if (alreadyFocused && overSearchField) {
 
-				if (!GuiScreen.isShiftKeyDown()) {
-					searchField.setSelectionPos(searchField.getCursorPosition());
+				if (GuiScreen.isShiftKeyDown()) {
+					searchField.setCursorPosition(lastCursorPos);
+					searchField.setSelectionPos(cursorPos);
 				}
 
 				if (cursorPos == lastCursorPos || clickCount == 3) {
@@ -210,8 +211,8 @@ public class ChestEventHandler {
 					clickCount = 1;
 				}
 			} else if (overSearchField && Config.autoSelect) {
-				searchField.setCursorPositionEnd();
-				searchField.setSelectionPos(0);
+				searchField.setCursorPositionZero();
+				searchField.setSelectionPos(searchField.getText().length());
 			} else {
 				searchField.setCursorPositionZero();
 			}
