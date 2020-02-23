@@ -209,13 +209,11 @@ public class ChestEventHandler {
 				} else {
 					clickCount = 1;
 				}
-			} else if (overSearchField) {
+			} else if (overSearchField && Config.autoSelect) {
 				searchField.setCursorPositionEnd();
 				searchField.setSelectionPos(0);
 			} else {
-				if (Config.autoSelect) {
-					searchField.setCursorPositionZero();
-				}
+				searchField.setCursorPositionZero();
 			}
 		}
 	}
