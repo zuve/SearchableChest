@@ -88,8 +88,9 @@ public class ChestEventHandler {
 		if (searchField != null) {
 			int keyCode = event.getKeyCode();
 			int scanCode = event.getScanCode();
-
-			if (mc.gameSettings.keyBindChat.matchesKey(keyCode, scanCode)) {
+			if (mc.gameSettings.keyBindInventory.matchesKey(keyCode, scanCode)) {
+				event.setCanceled(true);
+			} else if (mc.gameSettings.keyBindChat.matchesKey(keyCode, scanCode)) {
 				if (!searchField.keyPressed(keyCode, scanCode, event.getModifiers())) {
 					searchField.setFocused(true);
 					skip = true;
@@ -157,7 +158,7 @@ public class ChestEventHandler {
 						break;
 					}
 					return;
-				} else if (searchField.keyPressed(keyCode, scanCode, event.getModifiers())) {
+				} else if (searchField.isFocused()) {
 					for (int i = 0; i < 9; ++i) {
 						if (mc.gameSettings.keyBindsHotbar[i]
 								.isActiveAndMatches(InputMappings.getInputByCode(keyCode, scanCode))) {
@@ -188,7 +189,7 @@ public class ChestEventHandler {
 			int lastCursorPos = searchField.getCursorPosition();
 			boolean overSearchField = searchField.mouseClicked(x, y, event.getButton());
 			int cursorPos = searchField.getCursorPosition();
-			
+
 			if (alreadyFocused && overSearchField) {
 				if (GuiScreen.isShiftKeyDown()) {
 					searchField.setCursorPosition(lastCursorPos);
