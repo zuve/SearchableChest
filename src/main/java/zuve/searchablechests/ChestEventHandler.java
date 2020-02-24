@@ -96,11 +96,7 @@ public class ChestEventHandler {
 					switch (keyCode) {
 					case 262:
 						if (GuiScreen.isShiftKeyDown()) {
-							if (GuiScreen.isCtrlKeyDown()) {
-								searchField.func_212422_f(searchField.getNthWordFromCursor(1));
-							} else {
-								searchField.func_212422_f(searchField.getCursorPosition() + 1);
-							}
+							searchField.keyPressed(keyCode, scanCode, modifiers);
 						} else if (GuiScreen.isCtrlKeyDown()) {
 							searchField.setCursorPosition(searchField.getNthWordFromCursor(1));
 						} else if (!searchField.getSelectedText().isEmpty()) {
@@ -114,11 +110,7 @@ public class ChestEventHandler {
 						break;
 					case 263:
 						if (GuiScreen.isShiftKeyDown()) {
-							if (GuiScreen.isCtrlKeyDown()) {
-								searchField.func_212422_f(searchField.getNthWordFromCursor(-1));
-							} else {
-								searchField.func_212422_f(searchField.getCursorPosition() - 1);
-							}
+							searchField.keyPressed(keyCode, scanCode, modifiers);
 						} else if (GuiScreen.isCtrlKeyDown()) {
 							searchField.setCursorPosition(searchField.getNthWordFromCursor(-1));
 						} else if (!searchField.getSelectedText().isEmpty()) {
