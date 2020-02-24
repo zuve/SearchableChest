@@ -169,6 +169,7 @@ public class ChestEventHandler {
 				}
 			} else if (mc.gameSettings.keyBindChat.matchesKey(keyCode, scanCode)) { // Chat key
 				searchField.setFocused2(true);
+				event.setCanceled(true);
 				skip = true;
 			}
 		}
