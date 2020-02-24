@@ -56,6 +56,7 @@ public class ChestEventHandler {
 			searchField.setCanLoseFocus(true);
 			searchField.setVisible(true);
 			searchField.setFocused(Config.autoFocus);
+			skip = false;
 		} else {
 			searchField = null;
 		}
@@ -64,17 +65,20 @@ public class ChestEventHandler {
 	@SubscribeEvent
 	public void onKeyPressed(GuiScreenEvent.KeyboardInputEvent event) {
 		if (searchField != null && Keyboard.getEventKeyState()) {
-
-			if (skip) {
-				skip = false;
-			} else {
-				skip = true;
-				int keyCode = Keyboard.getEventKey();
-				char keyChar = Keyboard.getEventCharacter();
-				if (searchField.isFocused()) {
-					System.out.println(keyCode);
-					if (keyCode == 200 || keyCode == 203 || keyCode == 205 || keyCode == 208) {
+			int keyCode = Keyboard.getEventKey();
+			char charCode = Keyboard.getEventCharacter();
+			if (searchField.isFocused()) {
+				if (skip) {
+					skip = false;
+				} else {
+					skip = true;
+					if (mc.gameSettings.keyBindInventory.isActiveAndMatches(keyCode)) { // Inventory key
 						event.setCanceled(true);
+						skip = false;
+						searchField.textboxKeyTyped(charCode, keyCode);
+					} else if (keyCode == 200 || keyCode == 203 || keyCode == 205 || keyCode == 208) {
+						event.setCanceled(true);
+						skip = false;
 						switch (keyCode) {
 						case 200:
 							if (GuiScreen.isShiftKeyDown()) {
@@ -85,14 +89,7 @@ public class ChestEventHandler {
 							break;
 						case 203:
 							if (GuiScreen.isShiftKeyDown()) {
-								if (searchField.getSelectedText().isEmpty()) {
-									searchField.setSelectionPos(searchField.getCursorPosition());
-								}
-								if (GuiScreen.isCtrlKeyDown()) {
-									searchField.setCursorPosition(searchField.getNthWordFromCursor(-1));
-								} else {
-									searchField.setCursorPosition(searchField.getCursorPosition() - 1);
-								}
+								searchField.textboxKeyTyped(charCode, keyCode);
 							} else if (GuiScreen.isCtrlKeyDown()) {
 								searchField.setCursorPosition(searchField.getNthWordFromCursor(-1));
 							} else if (!searchField.getSelectedText().isEmpty()) {
@@ -106,14 +103,7 @@ public class ChestEventHandler {
 							break;
 						case 205:
 							if (GuiScreen.isShiftKeyDown()) {
-								if (searchField.getSelectedText().isEmpty()) {
-									searchField.setSelectionPos(searchField.getCursorPosition());
-								}
-								if (GuiScreen.isCtrlKeyDown()) {
-									searchField.setCursorPosition(searchField.getNthWordFromCursor(1));
-								} else {
-									searchField.setCursorPosition(searchField.getCursorPosition() + 1);
-								}
+								searchField.textboxKeyTyped(charCode, keyCode);
 							} else if (GuiScreen.isCtrlKeyDown()) {
 								searchField.setCursorPosition(searchField.getNthWordFromCursor(1));
 							} else if (!searchField.getSelectedText().isEmpty()) {
@@ -133,22 +123,21 @@ public class ChestEventHandler {
 							}
 							break;
 						}
-						return;
-					}
-					if (searchField.textboxKeyTyped(keyChar, keyCode)) {
-						for (int i = 0; i < 9; ++i) {
+					} else {
+						for (int i = 0; i < 9; ++i) { // Hotbar keys
 							if (mc.gameSettings.keyBindsHotbar[i].isActiveAndMatches(keyCode)) {
 								event.setCanceled(true);
+								skip = false;
+								searchField.textboxKeyTyped(charCode, keyCode);
+								return;
 							}
 						}
-					}
-				} else {
-					if (mc.gameSettings.keyBindChat.isActiveAndMatches(keyCode)) {
-						searchField.setFocused(true);
-						event.setCanceled(true);
-						skip = true;
+						searchField.textboxKeyTyped(charCode, keyCode);
 					}
 				}
+			} else if (mc.gameSettings.keyBindChat.getKeyCode() == Keyboard.getEventKey()) { // Chat key
+				searchField.setFocused(true);
+				skip = true;
 			}
 		}
 	}
