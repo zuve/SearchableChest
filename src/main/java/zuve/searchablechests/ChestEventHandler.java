@@ -113,13 +113,6 @@ public class ChestEventHandler {
 					searchField.setFocused2(true);
 					skip = true;
 				}
-			} else if (searchField.isFocused()) {
-				for (int i = 0; i < 9; ++i) {
-					if (mc.gameSettings.keyBindsHotbar[i]
-							.isActiveAndMatches(InputMappings.getInputByCode(keyCode, scanCode))) {
-						event.setCanceled(true);
-					}
-				}
 			} else if (keyCode >= 262 && keyCode <= 265) {
 				switch (keyCode) {
 				case 262:
@@ -181,6 +174,13 @@ public class ChestEventHandler {
 					break;
 				}
 				return;
+			} else if (searchField.isFocused()) {
+				for (int i = 0; i < 9; ++i) {
+					if (mc.gameSettings.keyBindsHotbar[i]
+							.isActiveAndMatches(InputMappings.getInputByCode(keyCode, scanCode))) {
+						event.setCanceled(true);
+					}
+				}
 			}
 		}
 	}
