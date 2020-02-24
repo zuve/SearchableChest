@@ -7,4 +7,5 @@ public class SearchableChestsConfig {
 	public static boolean autoSelect;
 	public static ArrayList<String> blacklist;
 	public static int minimumContainerSize;
+	public static ArrayList<String> blacklistCode = new ArrayList<String>();
 }
