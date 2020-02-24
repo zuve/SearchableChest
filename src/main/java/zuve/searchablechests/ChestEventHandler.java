@@ -114,11 +114,7 @@ public class ChestEventHandler {
 					switch (keyCode) {
 					case 262:
 						if (Screen.hasShiftDown()) {
-							if (Screen.hasControlDown()) {
-								updateCursorPosition(searchField.getNthWordFromCursor(1));
-							} else {
-								updateCursorPosition(searchField.getCursorPosition() + 1);
-							}
+							searchField.keyPressed(keyCode, scanCode, modifiers);
 						} else if (Screen.hasControlDown()) {
 							updateCursorPosition(searchField.getNthWordFromCursor(1));
 						} else if (!searchField.getSelectedText().isEmpty()) {
@@ -132,11 +128,7 @@ public class ChestEventHandler {
 						break;
 					case 263:
 						if (Screen.hasShiftDown()) {
-							if (Screen.hasControlDown()) {
-								updateCursorPosition(searchField.getNthWordFromCursor(-1));
-							} else {
-								updateCursorPosition(searchField.getCursorPosition() - 1);
-							}
+							searchField.keyPressed(keyCode, scanCode, modifiers);
 						} else if (Screen.hasControlDown()) {
 							updateCursorPosition(searchField.getNthWordFromCursor(-1));
 						} else if (!searchField.getSelectedText().isEmpty()) {
