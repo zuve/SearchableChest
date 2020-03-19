@@ -11,7 +11,7 @@ import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.client.gui.screen.inventory.InventoryScreen;
-import net.minecraft.client.gui.widget.TextFieldWidget;
+import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.client.util.ITooltipFlag.TooltipFlags;
 import net.minecraft.client.util.InputMappings;
 import net.minecraft.entity.player.PlayerInventory;
@@ -19,10 +19,10 @@ import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.GuiContainerEvent;
+import net.minecraftforge.client.event.GuiOpenEvent;
 import net.minecraftforge.client.event.GuiScreenEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
@@ -34,11 +34,9 @@ public class ChestEventHandler {
 	private boolean skip;
 
 	private Minecraft mc;
-	private TextFieldWidget searchField;
-	private int selectionEnd;
+	private RichTextFieldWidget searchField;
+	private boolean newGui;
 	private ResourceLocation searchBar = new ResourceLocation("searchablechests", "textures/gui/search_bar.png");
-	private long lastClickTime;
-	private int clickCount;
 
 	public ChestEventHandler() {
 		mc = Minecraft.getInstance();
@@ -63,15 +61,20 @@ public class ChestEventHandler {
 						+ SearchableChestsConfig.minimumContainerSize
 				&& !SearchableChestsConfig.blacklist.contains(gui.getTitle().getString())
 				&& !SearchableChestsConfig.blacklistCode.contains(gui.getClass().getName())) {
+			ContainerScreen<?> containerGui = (ContainerScreen<?>) gui;
 			mc.keyboardListener.enableRepeatEvents(true);
 			FontRenderer fontRenderer = mc.fontRenderer;
-			searchField = new TextFieldWidget(fontRenderer, 81, 6, 80, fontRenderer.FONT_HEIGHT, "");
-			searchField.setText("");
+			searchField = new RichTextFieldWidget(fontRenderer, containerGui.getGuiLeft() + 82,
+					containerGui.getGuiTop() + 6, 80, fontRenderer.FONT_HEIGHT, newGui ? null : searchField, "");
+			newGui = false;
+			event.addWidget(searchField);
 			searchField.setMaxStringLength(50);
 			searchField.setEnableBackgroundDrawing(false);
 			searchField.setTextColor(16777215);
 			searchField.setCanLoseFocus(true);
+			searchField.setSelectOnFocus(SearchableChestsConfig.autoSelect);
 			searchField.setVisible(true);
+			gui.setFocused(searchField);
 			searchField.setFocused2(SearchableChestsConfig.autoFocus);
 		} else {
 			searchField = null;
@@ -81,156 +84,47 @@ public class ChestEventHandler {
 	@SubscribeEvent
 	public void onCharTyped(GuiScreenEvent.KeyboardCharTypedEvent.Pre event) {
 		if (searchField != null) {
-			if (!skip) {
-				searchField.charTyped(event.getCodePoint(), event.getCodePoint());
-			} else {
+			if (skip) {
 				skip = false;
+				event.setCanceled(true);
 			}
 		}
-	}
-
-	private void updateCursorPosition(int position) {
-		searchField.setCursorPosition(position);
-		if (!Screen.hasShiftDown()) {
-			updateSelectionEnd(position);
-		}
-	}
-
-	private void updateSelectionEnd(int position) {
-		int i = searchField.getText().length();
-		searchField.setSelectionPos(position);
-		selectionEnd = MathHelper.clamp(position, 0, i);
 	}
 
 	@SubscribeEvent
 	public void onKeyPressed(GuiScreenEvent.KeyboardKeyPressedEvent.Pre event) {
 		if (searchField != null) {
-			int keyCode = event.getKeyCode();
-			int scanCode = event.getScanCode();
-			int modifiers = event.getModifiers();
-			if (searchField.isFocused()) {
-				if (mc.gameSettings.keyBindInventory.matchesKey(keyCode, scanCode)) { // Inventory key
-					event.setCanceled(true);
-				} else if (keyCode >= 262 && keyCode <= 265) { // Arrow keys
-					switch (keyCode) {
-					case 262:
-						if (Screen.hasShiftDown()) {
-							searchField.keyPressed(keyCode, scanCode, modifiers);
-						} else if (Screen.hasControlDown()) {
-							updateCursorPosition(searchField.getNthWordFromCursor(1));
-						} else if (!searchField.getSelectedText().isEmpty()) {
-							int rightSelection = searchField.getCursorPosition() > selectionEnd
-									? searchField.getCursorPosition()
-									: selectionEnd;
-							updateCursorPosition(rightSelection);
-						} else {
-							updateCursorPosition(searchField.getCursorPosition() + 1);
-						}
-						break;
-					case 263:
-						if (Screen.hasShiftDown()) {
-							searchField.keyPressed(keyCode, scanCode, modifiers);
-						} else if (Screen.hasControlDown()) {
-							updateCursorPosition(searchField.getNthWordFromCursor(-1));
-						} else if (!searchField.getSelectedText().isEmpty()) {
-							int leftSelection = searchField.getCursorPosition() < selectionEnd
-									? searchField.getCursorPosition()
-									: selectionEnd;
-							updateCursorPosition(leftSelection);
-						} else {
-							updateCursorPosition(searchField.getCursorPosition() - 1);
-							updateCursorPosition(searchField.getCursorPosition());
-						}
-						break;
-					case 264:
-						if (Screen.hasShiftDown()) {
-							updateSelectionEnd(searchField.getText().length());
-						} else {
-							updateCursorPosition(searchField.getText().length());
-						}
-						break;
-					case 265:
-						if (Screen.hasShiftDown()) {
-							updateSelectionEnd(0);
-						} else {
-							updateCursorPosition(0);
-						}
-						break;
-					}
-				} else {
-					for (int i = 0; i < 9; ++i) { // Hotbar keys
-						if (mc.gameSettings.keyBindsHotbar[i]
-								.isActiveAndMatches(InputMappings.getInputByCode(keyCode, scanCode))) {
-							event.setCanceled(true);
-							return;
-						}
-					}
-					searchField.keyPressed(keyCode, scanCode, modifiers);
-				}
-			} else if (mc.gameSettings.keyBindChat.matchesKey(keyCode, scanCode)) { // Chat key
+			if (!searchField.isFocused() && mc.gameSettings.keyBindChat.getKey().getKeyCode() == event.getKeyCode()) {
 				searchField.setFocused2(true);
-				event.setCanceled(true);
 				skip = true;
+			} else if (searchField.isFocused()){
+				for (KeyBinding k : mc.gameSettings.keyBindings) {
+					if (k.isActiveAndMatches(InputMappings.getInputByCode(event.getKeyCode(), event.getScanCode()))) {
+						event.setCanceled(true);
+						break;
+					}
+				}
 			}
 		}
 	}
 
 	@SubscribeEvent
-	public void onMouseClicked(GuiScreenEvent.MouseClickedEvent.Pre event) {
+	public void onOpenGui(GuiOpenEvent event) {
+		newGui = !SearchableChestsConfig.preserveSearch;
+	}
+
+	@SubscribeEvent
+	public void onBackground(GuiContainerEvent.DrawBackground event) {
 		if (searchField != null) {
-			long clickTime = System.currentTimeMillis();
-			if (clickTime - lastClickTime <= 475) {
-				clickCount++;
-				lastClickTime = System.currentTimeMillis();
-			} else {
-				clickCount = 1;
-				lastClickTime = System.currentTimeMillis();
-			}
-			double x = event.getMouseX() - ((ContainerScreen<?>) event.getGui()).getGuiLeft();
-			double y = event.getMouseY() - ((ContainerScreen<?>) event.getGui()).getGuiTop();
-
-			boolean alreadyFocused = searchField.isFocused();
-
-			int lastCursorPos = searchField.getCursorPosition();
-			boolean overSearchField = searchField.mouseClicked(x, y, event.getButton());
-			int cursorPos = searchField.getCursorPosition();
-
-			if (alreadyFocused && overSearchField) {
-				if (Screen.hasShiftDown()) {
-					updateCursorPosition(lastCursorPos);
-					updateSelectionEnd(cursorPos);
-				}
-				if (cursorPos == lastCursorPos || clickCount == 3) {
-					switch (clickCount) {
-					case 2:
-						updateCursorPosition(searchField.getNthWordFromCursor(1)
-								- ((searchField.getNthWordFromCursor(1) == searchField.getText().length()) ? 0 : 1));
-						updateSelectionEnd(searchField.getNthWordFromCursor(-1));
-						break;
-					case 3:
-						updateCursorPosition(searchField.getText().length());
-						updateSelectionEnd(0);
-						break;
-					}
-				} else {
-					clickCount = 1;
-				}
-			} else if (overSearchField && SearchableChestsConfig.autoSelect) {
-				updateCursorPosition(0);
-				updateSelectionEnd(searchField.getText().length());
-			} else {
-				updateCursorPosition(0);
-			}
+			mc.getTextureManager().bindTexture(searchBar);
+			AbstractGui.blit(event.getGuiContainer().getGuiLeft() + 80, event.getGuiContainer().getGuiTop() + 4, 0.0F,
+					0.0F, 90, 12, 90, 12);
 		}
 	}
 
 	@SubscribeEvent
 	public void onForeground(GuiContainerEvent.DrawForeground event) {
 		if (searchField != null) {
-			RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-			mc.getTextureManager().bindTexture(searchBar);
-			AbstractGui.blit(79, 4, 0.0F, 0.0F, 90, 12, 90, 12);
-			searchField.render(event.getMouseX(), event.getMouseY(), mc.getRenderPartialTicks());
 			for (Slot s : event.getGuiContainer().getContainer().inventorySlots) {
 				if (!(s.inventory instanceof PlayerInventory)) {
 					ItemStack stack = s.getStack();
