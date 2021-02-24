@@ -3,6 +3,7 @@ package zuve.searchablechests;
 import java.util.ArrayList;
 import java.util.Locale;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.minecraft.client.Minecraft;
@@ -37,9 +38,11 @@ public class ChestEventHandler {
 	private RichTextFieldWidget searchField;
 	private boolean newGui;
 	private ResourceLocation searchBar = new ResourceLocation("searchablechests", "textures/gui/search_bar.png");
+	private MatrixStack ms;
 
 	public ChestEventHandler() {
 		mc = Minecraft.getInstance();
+		ms = new MatrixStack();
 	}
 
 	@SubscribeEvent
@@ -64,8 +67,8 @@ public class ChestEventHandler {
 			ContainerScreen<?> containerGui = (ContainerScreen<?>) gui;
 			mc.keyboardListener.enableRepeatEvents(true);
 			FontRenderer fontRenderer = mc.fontRenderer;
-			searchField = new RichTextFieldWidget(fontRenderer, containerGui.getGuiLeft() + 82,
-					containerGui.getGuiTop() + 6, 80, fontRenderer.FONT_HEIGHT, newGui ? null : searchField, "");
+			searchField = new RichTextFieldWidget(fontRenderer, containerGui.getGuiLeft() + 81,
+					containerGui.getGuiTop() + 6, 80, fontRenderer.FONT_HEIGHT, newGui ? null : searchField, ITextComponent.getTextComponentOrEmpty(null));
 			newGui = false;
 			event.addWidget(searchField);
 			searchField.setMaxStringLength(50);
@@ -74,7 +77,7 @@ public class ChestEventHandler {
 			searchField.setCanLoseFocus(true);
 			searchField.setSelectOnFocus(SearchableChestsConfig.autoSelect);
 			searchField.setVisible(true);
-			gui.setFocused(searchField);
+			gui.changeFocus(true);
 			searchField.setFocused2(SearchableChestsConfig.autoFocus);
 		} else {
 			searchField = null;
@@ -117,7 +120,7 @@ public class ChestEventHandler {
 	public void onBackground(GuiContainerEvent.DrawBackground event) {
 		if (searchField != null) {
 			mc.getTextureManager().bindTexture(searchBar);
-			AbstractGui.blit(event.getGuiContainer().getGuiLeft() + 80, event.getGuiContainer().getGuiTop() + 4, 0.0F,
+			AbstractGui.blit(ms, event.getGuiContainer().getGuiLeft() + 79, event.getGuiContainer().getGuiTop() + 4, 0.0F,
 					0.0F, 90, 12, 90, 12);
 		}
 	}
@@ -132,7 +135,7 @@ public class ChestEventHandler {
 						int x = s.xPos;
 						int y = s.yPos;
 						RenderSystem.disableDepthTest();
-						AbstractGui.fill(x, y, x + 16, y + 16, 0x80FF0000);
+						AbstractGui.fill(ms, x, y, x + 16, y + 16, 0x80FF0000);
 						RenderSystem.enableDepthTest();
 					}
 				}

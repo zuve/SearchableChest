@@ -18,7 +18,7 @@ public class SearchableChests {
 	public static final Config CONFIG = specPair.getLeft();
 	
 	public SearchableChests() {
-		DistExecutor.runWhenOn(Dist.CLIENT, () -> () -> {
+		DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
 			ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, CONFIG_SPEC);
 			MinecraftForge.EVENT_BUS.register(new ChestEventHandler());
 		});
