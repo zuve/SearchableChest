@@ -24,7 +24,6 @@ public class RichTextFieldWidget extends TextFieldWidget {
 	    boolean wasFocused = this.isFocused();
 	    boolean isInside = super.mouseClicked(mouseX, mouseY, button);
 
-		System.out.println("mouseClicked - isInside: " + isInside);
 		if (isInside && !wasFocused) {
 			this.updateSelection(false, true);
 		}
