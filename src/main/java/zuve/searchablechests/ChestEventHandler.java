@@ -51,6 +51,7 @@ public class ChestEventHandler {
 		if (config.getSpec() == SearchableChests.CONFIG_SPEC) {
 			SearchableChestsConfig.autoFocus = SearchableChests.CONFIG.autoFocus.get();
 			SearchableChestsConfig.autoSelect = SearchableChests.CONFIG.autoSelect.get();
+			SearchableChestsConfig.preserveSearch = SearchableChests.CONFIG.preserveSearch.get();
 			SearchableChestsConfig.minimumContainerSize = SearchableChests.CONFIG.minimumContainerSize.get();
 			SearchableChestsConfig.blacklist = SearchableChests.CONFIG.blacklist.get();
 		}
