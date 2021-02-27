@@ -18,9 +18,16 @@ public class SearchableChests {
 	public static final Config CONFIG = specPair.getLeft();
 	
 	public SearchableChests() {
-		DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
-			ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, CONFIG_SPEC);
+		DistExecutor.safeRunWhenOn(Dist.CLIENT, () -> new SearchableChestsRunnable());
+	}
+
+	class SearchableChestsRunnable implements DistExecutor.SafeRunnable {
+		private static final long serialVersionUID = 7343468567232854267L;
+
+		@Override
+		public void run() {
+			ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, SearchableChests.CONFIG_SPEC);
 			MinecraftForge.EVENT_BUS.register(new ChestEventHandler());
-		});
+		}
 	}
 }
