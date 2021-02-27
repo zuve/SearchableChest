@@ -38,11 +38,9 @@ public class ChestEventHandler {
 	private RichTextFieldWidget searchField;
 	private boolean newGui;
 	private ResourceLocation searchBar = new ResourceLocation("searchablechests", "textures/gui/search_bar.png");
-	private MatrixStack ms;
 
 	public ChestEventHandler() {
 		mc = Minecraft.getInstance();
-		ms = new MatrixStack();
 	}
 
 	@SubscribeEvent
@@ -121,8 +119,9 @@ public class ChestEventHandler {
 	public void onBackground(GuiContainerEvent.DrawBackground event) {
 		if (searchField != null) {
 			mc.getTextureManager().bindTexture(searchBar);
-			AbstractGui.blit(ms, event.getGuiContainer().getGuiLeft() + 79, event.getGuiContainer().getGuiTop() + 4, 0.0F,
-					0.0F, 90, 12, 90, 12);
+			AbstractGui.blit(event.getMatrixStack(),
+					event.getGuiContainer().getGuiLeft() + 79, event.getGuiContainer().getGuiTop() + 4,
+					0.0F, 0.0F, 90, 12, 90, 12);
 		}
 	}
 
@@ -136,7 +135,7 @@ public class ChestEventHandler {
 						int x = s.xPos;
 						int y = s.yPos;
 						RenderSystem.disableDepthTest();
-						AbstractGui.fill(ms, x, y, x + 16, y + 16, 0x80FF0000);
+						AbstractGui.fill(event.getMatrixStack(), x, y, x + 16, y + 16, 0x80FF0000);
 						RenderSystem.enableDepthTest();
 					}
 				}
